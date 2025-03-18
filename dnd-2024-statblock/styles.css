@@ -1,0 +1,232 @@
+/* D&D 2024 Statblock Styles */
+
+/* Define color variables */
+:root {
+  --MonsterBackground: #f4f0ec;
+  --Light_Gray: #888;
+  --New_Dark_Red: #6f1f11;
+  --HB_Color_HeaderText: #333;
+  --Monster_Table_Red: #d9d0ca;
+  --Monster_Table_Yellow: #e8e2d6;
+  --Monster_Table_Purple: #cbc6c8;
+  --Monster_Table_Green: #d2d6ce;
+}
+
+/* Container styles */
+.monster-container {
+  margin: 1em 0;
+  font-family: "Bookmania", Georgia, "Times New Roman", serif;
+  font-size: 10pt;
+}
+
+/* Monster frame */
+.monster {
+  padding: 10px 8px;
+  background-color: var(--MonsterBackground);
+  border: 3.5px double var(--Light_Gray);
+  border-radius: 10px;
+  box-shadow: 2px 2px 5px rgba(136, 136, 136, 0.5);
+  margin: 0 -8px;
+  max-width: 800px;
+  break-inside: avoid; /* Prevents page breaks in PDFs */
+}
+
+/* Monster title - h2 element with class "monster-title" */
+.monster-title {
+  margin-top: 0;
+  margin-bottom: 3px;
+  font-family: "MrsEavesSmallCapsSmallCaps", "Scala Sans SC", "Segoe UI", sans-serif;
+  font-size: 5.1mm;
+  letter-spacing: -0.15mm;
+  border-bottom: 1.5px solid var(--New_Dark_Red);
+  color: var(--New_Dark_Red);
+  padding-bottom: 3px;
+  -webkit-text-stroke: 0.1px var(--New_Dark_Red);
+  text-transform: small-caps;
+}
+
+/* Monster type - p element with class "monster-type" */
+.monster-type {
+  color: var(--Light_Gray);
+  font-size: inherit;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+/* Stats container */
+.monster-stats {
+  color: var(--HB_Color_HeaderText);
+  margin-top: 5px;
+}
+
+/* Style for stat labels (AC, HP, etc.) */
+.monster-vitals strong, 
+.monster-stats strong {
+  color: var(--New_Dark_Red);
+  font-weight: bold;
+}
+
+/* Vitals section */
+.monster-vitals {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.monster-vitals > div {
+  margin: 2px 0;
+}
+
+/* Section with class "monster-section" */
+.monster-section {
+  margin-bottom: 10px;
+}
+
+.monster-section p {
+  margin: 6px 0;
+}
+
+/* Styling for action names and trait names */
+.monster-section p strong,
+.monster-section em {
+  color: var(--New_Dark_Red);
+  font-weight: bold;
+}
+
+/* Section title - h3 with class "monster-section-title" */
+.monster-section-title {
+  color: var(--New_Dark_Red);
+  font-size: 1.2em;
+  margin-top: 1em;
+  margin-bottom: 0.2em;
+  border-bottom: none;
+  font-weight: bold;
+  font-family: "Bookmania", Georgia, "Times New Roman", serif;
+}
+
+/* Tables container */
+.monster-tables {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 5px;
+  margin-top: -10px;
+  margin-bottom: 12px;
+}
+
+/* Table with class "monster-table" */
+.monster-table {
+  border-collapse: separate;
+  border-spacing: 0 1.5px;
+  width: 100%;
+  margin-bottom: 5px;
+}
+
+/* Table headers */
+.monster-table th {
+  color: var(--Light_Gray);
+  font-weight: normal;
+  font-size: 8px;
+  padding: 2px 4px;
+  text-align: center;
+  position: relative;
+  top: 6px;
+  background-color: transparent !important; /* Override theme styles */
+  border: none !important; /* Override theme styles */
+}
+
+/* Ability score headers (STR, DEX, etc.) */
+.monster-table td:nth-child(1) {
+  color: var(--New_Dark_Red);
+  font-weight: bold;
+  font-variant: small-caps;
+}
+
+/* Table cells */
+.monster-table td {
+  padding: 4px;
+  text-align: center;
+  padding-top: 2px;
+  border: none !important; /* Override theme styles */
+}
+
+/* Alternating row colors for tables */
+.monster-table tr:nth-child(odd) td {
+  background-color: var(--Monster_Table_Red);
+}
+
+.monster-table tr:nth-child(odd) td:nth-child(1),
+.monster-table tr:nth-child(odd) td:nth-child(2) {
+  background-color: var(--Monster_Table_Yellow);
+  font-weight: bold;
+  font-variant: small-caps;
+  text-align: left;
+  padding-left: 4px;
+}
+
+.monster-table tr:nth-child(even) td {
+  background-color: var(--Monster_Table_Purple);
+}
+
+.monster-table tr:nth-child(even) td:nth-child(1),
+.monster-table tr:nth-child(even) td:nth-child(2) {
+  background-color: var(--Monster_Table_Green);
+  font-weight: bold;
+  font-variant: small-caps;
+  text-align: left;
+  padding-left: 4px;
+}
+
+/* Font loading */
+@font-face {
+  font-family: "MrsEavesSmallCapsSmallCaps";
+  src: url('./fonts/MrsEavesSmallCapsSmallCaps.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: "Bookmania";
+  src: url('./fonts/Bookmania-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Bookmania";
+  src: url('./fonts/Bookmania-Bold.otf') format('opentype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Bookmania";
+  src: url('./fonts/Bookmania-Italic.otf') format('opentype');
+  font-weight: normal;
+  font-style: italic;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .monster-vitals {
+    grid-template-columns: 1fr;
+  }
+  
+  .monster-tables {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Print/PDF support */
+@media print {
+  .monster {
+    box-shadow: none !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    break-inside: avoid !important;
+  }
+  
+  .monster-table td, 
+  .monster-table th {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
