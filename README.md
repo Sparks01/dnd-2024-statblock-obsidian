@@ -4,12 +4,9 @@ This plugin renders Dungeons & Dragons 2024 (OneD&D) style monster statblocks in
 
 ## Features
 
-- Renders beautiful D&D 2024-style statblocks directly in your Obsidian notes
-- Supports both code block syntax (````monster`) and inline syntax (`{{monster,frame}}`)
+- Supports Homebrewry style inside the ```monster code block.
 - Includes stat tables, traits, actions, and reactions styling
-- Responsive design that works on desktop and mobile
-- Print/PDF export support with proper color rendering
-- Matches the official D&D 2024 statblock styling
+
 
 ## Installation
 
