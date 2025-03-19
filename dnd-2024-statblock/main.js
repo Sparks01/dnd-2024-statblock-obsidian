@@ -29,6 +29,18 @@ __export(main_exports, {
 module.exports = __toCommonJS(main_exports);
 var import_obsidian = require("obsidian");
 var DnD2024StatblockPlugin = class extends import_obsidian.Plugin {
+  constructor() {
+    super(...arguments);
+    // Add this property at the class level
+    this.longStatKeys = [
+      "damage resistances",
+      "damage immunities",
+      "condition immunities",
+      "proficiency bonus",
+      "challenge",
+      "senses"
+    ];
+  }
   async onload() {
     console.log("Loading D&D 2024 Statblock Plugin");
     this.loadFonts();
@@ -65,44 +77,44 @@ var DnD2024StatblockPlugin = class extends import_obsidian.Plugin {
       const fontStyle = document.createElement("style");
       fontStyle.id = "dnd-2024-fonts";
       fontStyle.textContent = `
-      @font-face {
-        font-family: "MrsEavesSmallCapsSmallCaps";
-        src: ${mrsEaves ? `url("${mrsEaves}") format("truetype")` : ""};
-        font-display: swap;
-      }
-      
-      @font-face {
-        font-family: "ScalySans";
-        src: ${scalySansRegular ? `url("${scalySansRegular}") format("opentype")` : ""};
-        font-weight: normal;
-        font-style: normal;
-        font-display: swap;
-      }
-      
-      @font-face {
-        font-family: "ScalySans";
-        src: ${scalySansBold ? `url("${scalySansBold}") format("opentype")` : ""};
-        font-weight: bold;
-        font-style: normal;
-        font-display: swap;
-      }
-      
-      @font-face {
-        font-family: "ScalySans";
-        src: ${scalySansItalic ? `url("${scalySansItalic}") format("opentype")` : ""};
-        font-weight: normal;
-        font-style: italic;
-        font-display: swap;
-      }
-      
-      @font-face {
-        font-family: "ScalySans";
-        src: ${scalySansBoldItalic ? `url("${scalySansBoldItalic}") format("opentype")` : ""};
-        font-weight: bold;
-        font-style: italic;
-        font-display: swap;
-      }
-    `;
+        @font-face {
+          font-family: "MrsEavesSmallCapsSmallCaps";
+          src: ${mrsEaves ? `url("${mrsEaves}") format("truetype")` : ""};
+          font-display: swap;
+        }
+        
+        @font-face {
+          font-family: "ScalySans";
+          src: ${scalySansRegular ? `url("${scalySansRegular}") format("opentype")` : ""};
+          font-weight: normal;
+          font-style: normal;
+          font-display: swap;
+        }
+        
+        @font-face {
+          font-family: "ScalySans";
+          src: ${scalySansBold ? `url("${scalySansBold}") format("opentype")` : ""};
+          font-weight: bold;
+          font-style: normal;
+          font-display: swap;
+        }
+        
+        @font-face {
+          font-family: "ScalySans";
+          src: ${scalySansItalic ? `url("${scalySansItalic}") format("opentype")` : ""};
+          font-weight: normal;
+          font-style: italic;
+          font-display: swap;
+        }
+        
+        @font-face {
+          font-family: "ScalySans";
+          src: ${scalySansBoldItalic ? `url("${scalySansBoldItalic}") format("opentype")` : ""};
+          font-weight: bold;
+          font-style: italic;
+          font-display: swap;
+        }
+      `;
       const existingStyle = document.getElementById("dnd-2024-fonts");
       if (existingStyle) {
         existingStyle.remove();
@@ -114,14 +126,14 @@ var DnD2024StatblockPlugin = class extends import_obsidian.Plugin {
       const fallbackStyle = document.createElement("style");
       fallbackStyle.id = "dnd-2024-fonts-fallback";
       fallbackStyle.textContent = `
-      .monster-container {
-        font-family: Georgia, "Times New Roman", serif !important;
-      }
-      
-      .monster-title {
-        font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif !important;
-      }
-    `;
+        .monster-container {
+          font-family: Georgia, "Times New Roman", serif !important;
+        }
+        
+        .monster-title {
+          font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif !important;
+        }
+      `;
       document.head.appendChild(fallbackStyle);
       console.log("Using fallback fonts due to error loading custom fonts");
     }
@@ -187,7 +199,6 @@ var DnD2024StatblockPlugin = class extends import_obsidian.Plugin {
     }
     return textNodes;
   }
-  // Add these changes to your renderMonsterContent method
   /**
    * Render monster content into a container
    */
@@ -273,10 +284,20 @@ var DnD2024StatblockPlugin = class extends import_obsidian.Plugin {
           if (statKey.includes("initiative")) {
             statEl.classList.add("stat-initiative");
           }
+          const isLongContent = this.longStatKeys.some((key) => statKey.includes(key));
+          if (isLongContent) {
+            statEl.classList.add("long-content");
+          }
           const statLabel = document.createElement("strong");
           statLabel.textContent = statName + ":";
           statEl.appendChild(statLabel);
-          statEl.appendChild(document.createTextNode(" " + statValue));
+          if (isLongContent) {
+            const contentSpan = document.createElement("span");
+            contentSpan.textContent = " " + statValue;
+            statEl.appendChild(contentSpan);
+          } else {
+            statEl.appendChild(document.createTextNode(" " + statValue));
+          }
           if (leftStats.some((s) => statKey.includes(s.toLowerCase()))) {
             leftStatsEl.appendChild(statEl);
           } else if (rightStats.some((s) => statKey.includes(s.toLowerCase()))) {

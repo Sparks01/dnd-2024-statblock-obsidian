@@ -285,6 +285,47 @@
   }
 }
 
+/* Updated styling for long content stats to match trait descriptions */
+.monster-additional-stats .monster-stat-item.long-content {
+  display: block;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+/* Style the label like trait names */
+.monster-additional-stats .monster-stat-item.long-content strong {
+  display: inline;
+  color: var(--New_Dark_Red);
+  font-weight: bold;
+  font-variant: small-caps;
+  margin-right: 0;
+}
+
+/* Make the content flow like trait descriptions */
+.monster-additional-stats .monster-stat-item.long-content span {
+  display: inline;
+  padding-left: 0;
+  margin-left: 0;
+  color: #000;
+  line-height: 1.4;
+}
+
+/* Regular stats styling */
+.monster-additional-stats .monster-stat-item:not(.long-content) {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.monster-additional-stats .monster-stat-item:not(.long-content) strong {
+  color: var(--New_Dark_Red);
+  font-weight: bold;
+  font-variant: small-caps;
+  margin-right: 4px;
+}
+
+
+
 /* Special styling for action and reaction items */
 .monster-section p em:first-child {
   font-weight: bold;
