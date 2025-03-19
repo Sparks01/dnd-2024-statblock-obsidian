@@ -193,21 +193,21 @@
   margin: 0;
 }
 
-/* Alternating row colors for tables */
+/* Alternating row colors for tables - FLIPPED */
 .monster-table tr:nth-child(odd) td {
-  background-color: var(--Monster_Table_Red);
-}
-
-.monster-table tr:nth-child(odd) td:first-child {
-  background-color: var(--Monster_Table_Yellow);
-}
-
-.monster-table tr:nth-child(even) td {
   background-color: var(--Monster_Table_Purple);
 }
 
-.monster-table tr:nth-child(even) td:first-child {
+.monster-table tr:nth-child(odd) td:first-child {
   background-color: var(--Monster_Table_Green);
+}
+
+.monster-table tr:nth-child(even) td {
+  background-color: var(--Monster_Table_Red);
+}
+
+.monster-table tr:nth-child(even) td:first-child {
+  background-color: var(--Monster_Table_Yellow);
 }
 
 /* Additional stats below tables */
