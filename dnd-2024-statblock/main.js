@@ -31,11 +31,100 @@ var import_obsidian = require("obsidian");
 var DnD2024StatblockPlugin = class extends import_obsidian.Plugin {
   async onload() {
     console.log("Loading D&D 2024 Statblock Plugin");
+    this.loadFonts();
     this.registerMarkdownCodeBlockProcessor("monster", this.processMonsterBlock.bind(this));
     this.registerMarkdownPostProcessor(this.processInlineMonsters.bind(this));
   }
   onunload() {
     console.log("Unloading D&D 2024 Statblock Plugin");
+  }
+  /**
+   * Load fonts directly using FileSystem API and Data URLs
+   */
+  async loadFonts() {
+    try {
+      const fs = require("fs");
+      const path = require("path");
+      const pluginPath = this.app.vault.adapter.basePath + "/.obsidian/plugins/" + this.manifest.id;
+      console.log("Attempting to load fonts from:", pluginPath + "/fonts/");
+      const loadFont = (fontPath, fontType) => {
+        try {
+          const fontData = fs.readFileSync(path.join(pluginPath, "fonts", fontPath));
+          const base64Font = fontData.toString("base64");
+          return `data:font/${fontType};base64,${base64Font}`;
+        } catch (error) {
+          console.error(`Failed to load font ${fontPath}:`, error);
+          return null;
+        }
+      };
+      const scalySansRegular = loadFont("Scaly Sans.otf", "opentype");
+      const scalySansBold = loadFont("Scaly Sans Bold.otf", "opentype");
+      const scalySansItalic = loadFont("Scaly Sans Italic.otf", "opentype");
+      const scalySansBoldItalic = loadFont("Scaly Sans Bold Italic.otf", "opentype");
+      const mrsEaves = loadFont("MrsEavesSmallCapsSmallCaps.ttf", "truetype");
+      const fontStyle = document.createElement("style");
+      fontStyle.id = "dnd-2024-fonts";
+      fontStyle.textContent = `
+      @font-face {
+        font-family: "MrsEavesSmallCapsSmallCaps";
+        src: ${mrsEaves ? `url("${mrsEaves}") format("truetype")` : ""};
+        font-display: swap;
+      }
+      
+      @font-face {
+        font-family: "ScalySans";
+        src: ${scalySansRegular ? `url("${scalySansRegular}") format("opentype")` : ""};
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+      }
+      
+      @font-face {
+        font-family: "ScalySans";
+        src: ${scalySansBold ? `url("${scalySansBold}") format("opentype")` : ""};
+        font-weight: bold;
+        font-style: normal;
+        font-display: swap;
+      }
+      
+      @font-face {
+        font-family: "ScalySans";
+        src: ${scalySansItalic ? `url("${scalySansItalic}") format("opentype")` : ""};
+        font-weight: normal;
+        font-style: italic;
+        font-display: swap;
+      }
+      
+      @font-face {
+        font-family: "ScalySans";
+        src: ${scalySansBoldItalic ? `url("${scalySansBoldItalic}") format("opentype")` : ""};
+        font-weight: bold;
+        font-style: italic;
+        font-display: swap;
+      }
+    `;
+      const existingStyle = document.getElementById("dnd-2024-fonts");
+      if (existingStyle) {
+        existingStyle.remove();
+      }
+      document.head.appendChild(fontStyle);
+      console.log("D&D 2024 Statblock fonts loaded via data URLs");
+    } catch (error) {
+      console.error("Error loading fonts:", error);
+      const fallbackStyle = document.createElement("style");
+      fallbackStyle.id = "dnd-2024-fonts-fallback";
+      fallbackStyle.textContent = `
+      .monster-container {
+        font-family: Georgia, "Times New Roman", serif !important;
+      }
+      
+      .monster-title {
+        font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif !important;
+      }
+    `;
+      document.head.appendChild(fallbackStyle);
+      console.log("Using fallback fonts due to error loading custom fonts");
+    }
   }
   /**
    * Process a code block with the monster language
@@ -98,6 +187,7 @@ var DnD2024StatblockPlugin = class extends import_obsidian.Plugin {
     }
     return textNodes;
   }
+  // Add these changes to your renderMonsterContent method
   /**
    * Render monster content into a container
    */
@@ -132,15 +222,23 @@ var DnD2024StatblockPlugin = class extends import_obsidian.Plugin {
     const statsEl = document.createElement("div");
     statsEl.className = "monster-stats";
     monster.appendChild(statsEl);
-    const vitalsEl = document.createElement("div");
-    vitalsEl.className = "monster-vitals";
-    statsEl.appendChild(vitalsEl);
+    const leftStatsEl = document.createElement("div");
+    leftStatsEl.className = "monster-left-stats";
+    statsEl.appendChild(leftStatsEl);
+    const rightStatsEl = document.createElement("div");
+    rightStatsEl.className = "monster-right-stats";
+    statsEl.appendChild(rightStatsEl);
+    let hasAdditionalStats = false;
+    let additionalStatsEl = null;
+    let tablesContainer = null;
     let currentSection = "";
     let currentSectionTitle = "";
     let inStats = false;
     let inTables = false;
     let tableParts = [];
-    let tablesContainer = null;
+    const leftStats = ["AC", "HP", "Speed"];
+    const rightStats = ["Initiative"];
+    const additionalStats = ["Skills", "Resistances", "Senses", "Languages", "CR"];
     for (let i = currentLine; i < lines.length; i++) {
       const line = lines[i].trim();
       if (line.startsWith("###")) {
@@ -167,12 +265,31 @@ var DnD2024StatblockPlugin = class extends import_obsidian.Plugin {
       } else if (line.includes("::")) {
         const parts = line.split("::").map((part) => part.trim());
         if (parts.length === 2) {
+          const statName = parts[0].replace(/\*\*/g, "").trim();
+          const statValue = parts[1].trim();
           const statEl = document.createElement("div");
+          statEl.className = "monster-stat-item";
+          const statKey = statName.toLowerCase();
+          if (statKey.includes("initiative")) {
+            statEl.classList.add("stat-initiative");
+          }
           const statLabel = document.createElement("strong");
-          statLabel.textContent = parts[0].replace(/\*\*/g, "") + ": ";
+          statLabel.textContent = statName + ":";
           statEl.appendChild(statLabel);
-          statEl.appendChild(document.createTextNode(parts[1]));
-          vitalsEl.appendChild(statEl);
+          statEl.appendChild(document.createTextNode(" " + statValue));
+          if (leftStats.some((s) => statKey.includes(s.toLowerCase()))) {
+            leftStatsEl.appendChild(statEl);
+          } else if (rightStats.some((s) => statKey.includes(s.toLowerCase()))) {
+            rightStatsEl.appendChild(statEl);
+          } else {
+            if (!additionalStatsEl) {
+              additionalStatsEl = document.createElement("div");
+              additionalStatsEl.className = "monster-additional-stats";
+              monster.appendChild(additionalStatsEl);
+              hasAdditionalStats = true;
+            }
+            additionalStatsEl.appendChild(statEl);
+          }
         }
       } else if (currentSectionTitle && !line.startsWith("{{") && !line.startsWith("}}")) {
         currentSection += line + "\n";
