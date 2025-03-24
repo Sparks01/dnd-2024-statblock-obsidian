@@ -4,7 +4,7 @@ This plugin renders Dungeons & Dragons 2024 (OneD&D) style monster statblocks in
 
 ## Features
 
-- Supports Homebrewry style inside the ```monster code block.
+- Supports Homebrewry style inside the monster and monsterwide (for wider statblocks) code block.
 - Includes stat tables, traits, actions, and reactions styling
 
 
@@ -87,8 +87,8 @@ The plugin uses a styles.css file that can be modified to fit your preferences. 
 
 - Obsidian v0.15.0 or higher
 - Fonts used:
-  - Mrs Eaves Small Caps (for titles)
-  - Bookmania (for body text)
+  - Scaly Sans Caps (for titles)
+  - Scaly Sans (various) (for body text)
 
 ## Contributing
 
