@@ -12,7 +12,7 @@ This plugin renders Dungeons & Dragons 2024 (OneD&D) style monster statblocks in
 
 ### Manual Installation
 
-1. Download the latest release from the [GitHub releases page](https://github.com/yourusername/dnd-2024-statblock/releases)
+1. Download from the link. 
 2. Extract the zip file to your Obsidian vault's `.obsidian/plugins/` directory
    - The path should look like: `.obsidian/plugins/dnd-2024-statblock/`
 3. Make sure the following files are in the plugin directory:
