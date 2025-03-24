@@ -991,3 +991,309 @@ h3.monster-section-title,
   font-family: "ScalySansCaps", "ScalySans", Georgia, "Times New Roman", serif !important;
 }
 
+/* Update the color variables to match official D&D 2024 statblocks */
+:root {
+  --MonsterBackground: #f7f5f0;
+  --Light_Gray: #888;
+  --New_Dark_Red: #6f1f11; /* The rich dark red used in official statblocks */
+  --StatLabel_Color: #6f1f11; /* For stat labels (AC:, HP:, etc.) */
+  --HB_Color_HeaderText: #333;
+  --Monster_Table_Red: #ece5de;
+  --Monster_Table_Yellow: #f3ede3;
+  --Monster_Table_Purple: #e8e4e1;
+  --Monster_Table_Green: #e5e8e2;
+  --MonsterBorder: #d6d0c9;
+  --MonsterShadow: rgba(0, 0, 0, 0.15);
+  --Normal_Text: #000; /* Regular text color */
+}
+
+/* Update the color for stat labels (AC:, HP:, Speed:, etc.) */
+.monster-stat-item strong,
+.monster-wide .monster-stat-item strong {
+  color: var(--StatLabel_Color);
+  font-weight: bold;
+  font-variant: small-caps;
+  margin-right: 4px;
+}
+
+/* Update colors for ability score labels (STR, DEX, etc.) */
+.monster-table td:first-child,
+.monster-wide .ability-table td.ability-name {
+  color: var(--StatLabel_Color);
+  font-weight: bold;
+  font-variant: small-caps;
+}
+
+/* Update all section headers to use the appropriate color */
+.monster-section-title,
+.monster-wide .monster-section-title {
+  color: var(--New_Dark_Red);
+}
+
+/* Update color for action names and special terms */
+.monster-section p strong,
+.monster-section p em:first-child,
+.monster-wide .monster-section p strong:first-child,
+.monster-wide .monster-section p em:first-child {
+  color: var(--New_Dark_Red);
+  font-weight: bold;
+  font-style: italic;
+}
+
+/* Make ability/skill names stand out */
+.monster-section a,
+.monster-wide .monster-section a {
+  color: var(--New_Dark_Red);
+  font-weight: bold;
+  text-decoration: none;
+}
+
+/* Basic stat labels in additional stats section */
+.monster-additional-stats .monster-stat-item:not(.long-content) strong,
+.monster-wide .monster-additional-stats .monster-stat-item:not(.long-content) strong {
+  color: var(--StatLabel_Color);
+  font-weight: bold;
+  font-variant: small-caps;
+}
+
+/* Update the title color to match official D&D 2024 statblocks */
+.monster-title,
+.monster-wide .monster-title {
+  color: var(--New_Dark_Red);
+}
+
+/* Make sure all normal text is the appropriate color */
+.monster,
+.monster-wide,
+.monster p,
+.monster-wide p,
+.monster-stat-item,
+.monster-wide .monster-stat-item {
+  color: var(--Normal_Text);
+}
+
+/* Special styling for additional stats section label text (Skills, Senses, etc.) */
+.monster-additional-stats .monster-stat-item.stat-skills strong,
+.monster-additional-stats .monster-stat-item.stat-senses strong,
+.monster-additional-stats .monster-stat-item.stat-languages strong,
+.monster-additional-stats .monster-stat-item strong {
+  color: var(--StatLabel_Color);
+}
+
+/* Fix for links in the statblock - items like "Perception" and "Disadvantage" */
+.monster a,
+.monster-wide a {
+  color: var(--New_Dark_Red);
+  font-weight: bold;
+  text-decoration: none;
+}
+
+/* Define the colors we need */
+:root {
+  --New_Dark_Red: #6f1f11; /* The rich dark red used in official statblocks */
+  --Normal_Text: #000; /* Regular text color */
+}
+
+/* ==== LEFT COLUMN STATS (RED BOX) ==== */
+/* Make all basic stats (AC, HP, Speed, etc.) and their values red */
+.monster-left-stats,
+.monster-right-stats,
+.monster-additional-stats:not(.long-content),
+.monster-stat-item,
+.monster-left-stats .monster-stat-item,
+.monster-right-stats .monster-stat-item,
+.monster-additional-stats .monster-stat-item {
+  color: var(--New_Dark_Red);
+}
+
+/* Make all text in the left column stats red */
+.monster-stats,
+.monster-stat-item strong,
+.monster-stat-item span,
+.monster-left-stats *,
+.monster-right-stats *,
+.monster-additional-stats *:not(.long-content),
+.monster-table td,
+.ability-table td {
+  color: var(--New_Dark_Red);
+}
+
+/* Make the Skills section red */
+.monster-additional-stats .monster-stat-item.stat-skills,
+.monster-additional-stats .monster-stat-item.stat-skills strong,
+.monster-additional-stats .stat-skills * {
+  color: var(--New_Dark_Red) !important;
+}
+
+/* Make all labels in additional stats red */
+.monster-additional-stats .monster-stat-item:not(.long-content),
+.monster-additional-stats .monster-stat-item:not(.long-content) strong,
+.monster-additional-stats .monster-stat-item:not(.long-content) span {
+  color: var(--New_Dark_Red);
+}
+
+/* Make the challenge, proficiency bonus, etc. all red */
+.monster-container .monster-stat-item,
+.monster-container .monster-stat-item * {
+  color: var(--New_Dark_Red);
+}
+
+/* ==== ACTION SECTIONS (BLACK BOX) ==== */
+/* Make action descriptions black */
+.monster-section p,
+.monster-section div,
+.monster-section span {
+  color: var(--Normal_Text);
+}
+
+/* Keep action titles red */
+.monster-section-title,
+.monster-section p strong:first-child,
+.monster-section p em:first-child {
+  color: var(--New_Dark_Red);
+}
+
+/* Ensure the action descriptions are black */
+.monster-section p:not(:first-child),
+.monster-section p span:not(:first-child) {
+  color: var(--Normal_Text) !important;
+}
+
+/* Make "Multiattack" and other action names remain red */
+.monster-section p em:first-of-type,
+.monster-section p strong:first-of-type {
+  color: var(--New_Dark_Red) !important;
+}
+
+/* Make the rest of the text in action descriptions black */
+.monster-section p:not(:has(> em:first-of-type)),
+.monster-section p:not(:has(> strong:first-of-type)) {
+  color: var(--Normal_Text) !important;
+}
+
+/* Make specific section headers remain the red color */
+.monster-title,
+.monster-section-title,
+h2.monster-title,
+h3.monster-section-title {
+  color: var(--New_Dark_Red) !important;
+}
+
+/* ==== SPECIAL CASE FIXES ==== */
+/* Fix for the ability score tables */
+.monster-tables td,
+.ability-table td,
+.monster-wide .ability-table td {
+  color: var(--New_Dark_Red) !important;
+}
+
+/* Make sure "ACTIONS" and "LEGENDARY ACTIONS" headers stay red */
+h3.monster-section-title:contains("ACTIONS"),
+h3.monster-section-title:contains("Traits"),
+.monster-section-title {
+  color: var(--New_Dark_Red) !important;
+}
+
+/* Fix for skills text */
+.monster-stat-item.stat-skills,
+.monster-stat-item.stat-skills * {
+  color: var(--New_Dark_Red) !important;
+}
+
+/* Ensure "Damage Immunities", "Condition Immunities", etc. are red */
+.monster-additional-stats .monster-stat-item,
+.monster-additional-stats .monster-stat-item * {
+  color: var(--New_Dark_Red) !important;
+}
+
+/* Fix for bold text in action descriptions */
+
+/* Make all text in action descriptions black by default */
+.monster-section p {
+  color: var(--Normal_Text) !important;
+}
+
+/* Keep only the action names (first em or strong in a paragraph) red */
+.monster-section p em:first-child,
+.monster-section p strong:first-child {
+  color: var(--New_Dark_Red) !important;
+}
+
+/* Make all other bold/italic text in action descriptions black */
+.monster-section p em:not(:first-child),
+.monster-section p strong:not(:first-child),
+.monster-section p b,
+.monster-section p i {
+  color: var(--Normal_Text) !important;
+}
+
+/* Fix specifically for "Hit:" and other highlighted terms in action text */
+.monster-section p strong:not(:first-child),
+.monster-section p em:not(:first-child) {
+  color: var(--Normal_Text) !important;
+  font-weight: bold;
+}
+
+/* Target specific terms that should be black even if they're bold/italic */
+.monster-section p:contains("Hit:") strong,
+.monster-section p:contains("Failure:") strong,
+.monster-section p:contains("Success:") strong,
+.monster-section p:contains("DC") strong {
+  color: var(--Normal_Text) !important;
+}
+
+/* Override any other CSS that might make bold text red */
+.monster-section p * {
+  color: inherit;
+}
+.monster-section p *:not(em:first-child):not(strong:first-child) {
+  color: var(--Normal_Text) !important;
+}
+
+
+/* Make action names black in the black boxed sections */
+
+/* Make all text in action descriptions black, including the action names */
+.monster-section p,
+.monster-section p span,
+.monster-section p em,
+.monster-section p strong,
+.monster-section p i,
+.monster-section p b {
+  color: var(--Normal_Text) !important;
+}
+
+/* Target specific action names */
+.monster-section p em:first-child:contains("Multiattack"),
+.monster-section p strong:first-child:contains("Multiattack"),
+.monster-section p em:first-child:contains("Poison Breath"),
+.monster-section p strong:first-child:contains("Poison Breath"),
+.monster-section p em:first-child:contains("Rend"),
+.monster-section p strong:first-child:contains("Rend"),
+.monster-section p em:first-child:contains("Pounce"),
+.monster-section p em:first-child:contains("Mind Invasion"),
+.monster-section p em:first-child:contains("Noxious Miasma"),
+.monster-section p em:first-child:contains("Spellcasting") {
+  color: var(--Normal_Text) !important;
+}
+
+/* More generic rule to catch all action names */
+.monster-section p em:first-child,
+.monster-section p strong:first-child {
+  color: var(--Normal_Text) !important;
+}
+
+/* Make sure these specific actions are black */
+.monster-section p:contains("Multiattack") em:first-child,
+.monster-section p:contains("Poison Breath") em:first-child,
+.monster-section p:contains("Noxious Miasma") em:first-child,
+.monster-section p:contains("Mind Invasion") em:first-child,
+.monster-section p:contains("Pounce") em:first-child,
+.monster-section p:contains("Spellcasting") em:first-child {
+  color: var(--Normal_Text) !important;
+}
+
+/* Force override for any inline elements that might still be red */
+.monster-section p * {
+  color: var(--Normal_Text) !important;
+}
