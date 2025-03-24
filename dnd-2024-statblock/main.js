@@ -45,14 +45,19 @@ var DnD2024StatblockPlugin = class extends import_obsidian.Plugin {
     console.log("Loading D&D 2024 Statblock Plugin");
     this.loadFonts();
     this.registerMarkdownCodeBlockProcessor("monster", this.processMonsterBlock.bind(this));
+    this.registerMarkdownCodeBlockProcessor("monsterwide", async (source, el) => {
+      console.log("Processing monsterwide block");
+      const container = document.createElement("div");
+      container.className = "monster-container monster-container-wide";
+      await this.renderMonsterContent(source, container, { wide: true });
+      el.appendChild(container);
+    });
     this.registerMarkdownPostProcessor(this.processInlineMonsters.bind(this));
   }
   onunload() {
     console.log("Unloading D&D 2024 Statblock Plugin");
   }
-  /**
-   * Load fonts directly using FileSystem API and Data URLs
-   */
+  // 1. First, update your loadFonts() method to include Scaly Sans Caps
   async loadFonts() {
     try {
       const fs = require("fs");
@@ -73,48 +78,57 @@ var DnD2024StatblockPlugin = class extends import_obsidian.Plugin {
       const scalySansBold = loadFont("Scaly Sans Bold.otf", "opentype");
       const scalySansItalic = loadFont("Scaly Sans Italic.otf", "opentype");
       const scalySansBoldItalic = loadFont("Scaly Sans Bold Italic.otf", "opentype");
-      const mrsEaves = loadFont("MrsEavesSmallCapsSmallCaps.ttf", "truetype");
+      const scalySansCaps = loadFont("Scaly Sans Caps.woff2", "opentype");
+      const mrsEaves = loadFont("MrsEavesSmallCaps.ttf", "truetype");
       const fontStyle = document.createElement("style");
       fontStyle.id = "dnd-2024-fonts";
       fontStyle.textContent = `
-        @font-face {
-          font-family: "MrsEavesSmallCapsSmallCaps";
-          src: ${mrsEaves ? `url("${mrsEaves}") format("truetype")` : ""};
-          font-display: swap;
-        }
-        
-        @font-face {
-          font-family: "ScalySans";
-          src: ${scalySansRegular ? `url("${scalySansRegular}") format("opentype")` : ""};
-          font-weight: normal;
-          font-style: normal;
-          font-display: swap;
-        }
-        
-        @font-face {
-          font-family: "ScalySans";
-          src: ${scalySansBold ? `url("${scalySansBold}") format("opentype")` : ""};
-          font-weight: bold;
-          font-style: normal;
-          font-display: swap;
-        }
-        
-        @font-face {
-          font-family: "ScalySans";
-          src: ${scalySansItalic ? `url("${scalySansItalic}") format("opentype")` : ""};
-          font-weight: normal;
-          font-style: italic;
-          font-display: swap;
-        }
-        
-        @font-face {
-          font-family: "ScalySans";
-          src: ${scalySansBoldItalic ? `url("${scalySansBoldItalic}") format("opentype")` : ""};
-          font-weight: bold;
-          font-style: italic;
-          font-display: swap;
-        }
-      `;
+      @font-face {
+        font-family: "MrsEavesSmallCaps";
+        src: ${mrsEaves ? `url("${mrsEaves}") format("truetype")` : ""};
+        font-display: swap;
+      }
+      
+      @font-face {
+        font-family: "ScalySansCaps";
+        src: ${scalySansCaps ? `url("${scalySansCaps}") format("opentype")` : ""};
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+      }
+      
+      @font-face {
+        font-family: "ScalySans";
+        src: ${scalySansRegular ? `url("${scalySansRegular}") format("opentype")` : ""};
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+      }
+      
+      @font-face {
+        font-family: "ScalySans";
+        src: ${scalySansBold ? `url("${scalySansBold}") format("opentype")` : ""};
+        font-weight: bold;
+        font-style: normal;
+        font-display: swap;
+      }
+      
+      @font-face {
+        font-family: "ScalySans";
+        src: ${scalySansItalic ? `url("${scalySansItalic}") format("opentype")` : ""};
+        font-weight: normal;
+        font-style: italic;
+        font-display: swap;
+      }
+      
+      @font-face {
+        font-family: "ScalySans";
+        src: ${scalySansBoldItalic ? `url("${scalySansBoldItalic}") format("opentype")` : ""};
+        font-weight: bold;
+        font-style: italic;
+        font-display: swap;
+      }
+    `;
       const existingStyle = document.getElementById("dnd-2024-fonts");
       if (existingStyle) {
         existingStyle.remove();
@@ -126,17 +140,35 @@ var DnD2024StatblockPlugin = class extends import_obsidian.Plugin {
       const fallbackStyle = document.createElement("style");
       fallbackStyle.id = "dnd-2024-fonts-fallback";
       fallbackStyle.textContent = `
-        .monster-container {
-          font-family: Georgia, "Times New Roman", serif !important;
-        }
-        
-        .monster-title {
-          font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif !important;
-        }
-      `;
+      .monster-container {
+        font-family: Georgia, "Times New Roman", serif !important;
+      }
+      
+      .monster-title {
+        font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif !important;
+      }
+    `;
       document.head.appendChild(fallbackStyle);
       console.log("Using fallback fonts due to error loading custom fonts");
     }
+  }
+  /**
+   * Extract format options from the code block parameters or inline syntax
+   * @param source - Source string which may contain format options
+   * @returns Object with format options like { wide: boolean }
+   */
+  extractFormatOptions(source) {
+    const options = {
+      wide: false
+    };
+    if (source.startsWith("wide") || source.includes("\nwide")) {
+      options.wide = true;
+      source = source.replace(/^wide\s*/, "").replace(/\nwide\s*/, "\n");
+    }
+    if (source.includes("{{monster,frame,wide") || source.includes("{!monster,frame,wide")) {
+      options.wide = true;
+    }
+    return options;
   }
   /**
    * Process a code block with the monster language
@@ -144,9 +176,13 @@ var DnD2024StatblockPlugin = class extends import_obsidian.Plugin {
   async processMonsterBlock(source, el) {
     try {
       console.log("Processing monster code block");
+      const formatOptions = this.extractFormatOptions(source);
       const container = document.createElement("div");
       container.className = "monster-container";
-      await this.renderMonsterContent(source, container);
+      if (formatOptions.wide) {
+        container.classList.add("monster-container-wide");
+      }
+      await this.renderMonsterContent(source, container, formatOptions);
       el.appendChild(container);
     } catch (error) {
       console.error("Error processing monster block:", error);
@@ -163,16 +199,23 @@ var DnD2024StatblockPlugin = class extends import_obsidian.Plugin {
       const textNodes = this.getTextNodes(el);
       for (const node of textNodes) {
         const text = node.textContent || "";
-        if (text.includes("{{monster,frame") || text.includes("{!monster,frame")) {
-          const startIndex = text.indexOf("{{monster,frame");
+        const widePattern = /\{\{monster,frame,wide|\{!monster,frame,wide/;
+        const standardPattern = /\{\{monster,frame|\{!monster,frame/;
+        if (text.match(widePattern) || text.match(standardPattern)) {
+          const isWide = text.match(widePattern) !== null;
+          let startTag = isWide ? text.includes("{!monster,frame,wide") ? "{!monster,frame,wide" : "{{monster,frame,wide" : text.includes("{!monster,frame") ? "{!monster,frame" : "{{monster,frame";
+          const startIndex = text.indexOf(startTag);
           const endIndex = text.indexOf("}}", startIndex);
           if (startIndex >= 0 && endIndex > startIndex) {
-            const monsterContent = text.substring(startIndex + "{{monster,frame".length, endIndex);
+            const monsterContent = text.substring(startIndex + startTag.length, endIndex);
             const beforeText = document.createTextNode(text.substring(0, startIndex));
             const afterText = document.createTextNode(text.substring(endIndex + 2));
             const monsterContainer = document.createElement("div");
             monsterContainer.className = "monster-container";
-            await this.renderMonsterContent(monsterContent, monsterContainer);
+            if (isWide) {
+              monsterContainer.classList.add("monster-container-wide");
+            }
+            await this.renderMonsterContent(monsterContent, monsterContainer, { wide: isWide });
             const parent = node.parentNode;
             if (parent) {
               parent.insertBefore(beforeText, node);
@@ -200,19 +243,322 @@ var DnD2024StatblockPlugin = class extends import_obsidian.Plugin {
     return textNodes;
   }
   /**
-   * Render monster content into a container
+   * Enhanced section distribution for wide format with better column balancing
    */
-  async renderMonsterContent(source, container) {
+  distributeSectionsForWideFormat(sections, leftColumn, rightColumn) {
+    if (sections.length === 0)
+      return;
+    const traitsPattern = /^traits$/i;
+    const actionsPattern = /^actions$/i;
+    const legendaryActionsPattern = /^legendary actions$/i;
+    const reactionsPattern = /^reactions$/i;
+    let leftSections = [];
+    let rightSections = [];
+    sections.forEach((section) => {
+      const title = section.title.toLowerCase();
+      if (traitsPattern.test(title)) {
+        leftSections.unshift(section);
+      } else if (actionsPattern.test(title) || legendaryActionsPattern.test(title)) {
+        rightSections.push(section);
+      } else if (reactionsPattern.test(title)) {
+        rightSections.push(section);
+      } else {
+        leftSections.push(section);
+      }
+    });
+    const originalOrder = sections.map((s) => s.title);
+    leftSections.sort((a, b) => {
+      if (traitsPattern.test(a.title.toLowerCase()))
+        return -1;
+      if (traitsPattern.test(b.title.toLowerCase()))
+        return 1;
+      return originalOrder.indexOf(a.title) - originalOrder.indexOf(b.title);
+    });
+    rightSections.sort((a, b) => {
+      if (actionsPattern.test(a.title.toLowerCase()))
+        return -1;
+      if (actionsPattern.test(b.title.toLowerCase()))
+        return 1;
+      if (legendaryActionsPattern.test(a.title.toLowerCase()))
+        return 1;
+      if (legendaryActionsPattern.test(b.title.toLowerCase()))
+        return -1;
+      return originalOrder.indexOf(a.title) - originalOrder.indexOf(b.title);
+    });
+    this.renderSectionsToColumn(leftSections, leftColumn);
+    this.renderSectionsToColumn(rightSections, rightColumn);
+  }
+  /**
+   * Helper method to determine section category
+   */
+  getSectionCategory(title, categories) {
+    const lowercaseTitle = title.toLowerCase();
+    for (const [category, keywords] of Object.entries(categories)) {
+      if (keywords.some((keyword) => lowercaseTitle.includes(keyword))) {
+        return category;
+      }
+    }
+    return "misc";
+  }
+  /**
+   * Helper method to calculate total content length
+   */
+  sumContentLength(sections) {
+    return sections.reduce((sum, section) => sum + section.length, 0);
+  }
+  /**
+   * Helper method to render sections to a column
+   */
+  async renderSectionsToColumn(sections, column) {
+    for (const section of sections) {
+      const sectionEl = document.createElement("div");
+      sectionEl.className = "monster-section";
+      const sectionTitleEl = document.createElement("h3");
+      sectionTitleEl.className = "monster-section-title";
+      sectionTitleEl.textContent = section.title;
+      sectionEl.appendChild(sectionTitleEl);
+      const sectionContentEl = document.createElement("div");
+      await import_obsidian.MarkdownRenderer.renderMarkdown(
+        section.content,
+        sectionContentEl,
+        "",
+        this
+      );
+      sectionEl.appendChild(sectionContentEl);
+      column.appendChild(sectionEl);
+    }
+  }
+  /**
+   * Process table data for wide format (2x3 ability score grid)
+   * Fixed version to ensure proper alignment
+   */
+  processTableDataForWideFormat(tableContent, container) {
+    try {
+      console.log("Processing table data for wide format");
+      container.innerHTML = "";
+      const tables = tableContent.split("\n\n").filter((table) => table.trim());
+      console.log("Found tables:", tables.length);
+      const abilityScores = {};
+      tables.forEach((tableText) => {
+        const rows = tableText.split("\n").filter((row) => row.trim());
+        if (rows.length < 3)
+          return;
+        const dataRows = rows.slice(2);
+        dataRows.forEach((row) => {
+          const match = row.match(/\|(Str|Dex|Con|Int|Wis|Cha)\|/i);
+          if (match) {
+            const abilityName = match[1].toLowerCase();
+            abilityScores[abilityName] = row;
+            console.log(`Found ${abilityName} row:`, row);
+          }
+        });
+      });
+      console.log("Found ability scores:", Object.keys(abilityScores));
+      const firstTable = tables[0];
+      const firstTableRows = firstTable.split("\n").filter((row) => row.trim());
+      const headerRow = firstTableRows[0];
+      const headers = headerRow.split("|").filter((_, idx, arr) => idx > 0 && idx < arr.length - 1).map((cell) => cell.trim());
+      const leftTableRows = [];
+      if (abilityScores["str"])
+        leftTableRows.push(abilityScores["str"]);
+      if (abilityScores["dex"])
+        leftTableRows.push(abilityScores["dex"]);
+      if (abilityScores["con"])
+        leftTableRows.push(abilityScores["con"]);
+      const rightTableRows = [];
+      if (abilityScores["int"])
+        rightTableRows.push(abilityScores["int"]);
+      if (abilityScores["wis"])
+        rightTableRows.push(abilityScores["wis"]);
+      if (abilityScores["cha"])
+        rightTableRows.push(abilityScores["cha"]);
+      const leftTableContainer = document.createElement("div");
+      leftTableContainer.className = "ability-table-container";
+      const rightTableContainer = document.createElement("div");
+      rightTableContainer.className = "ability-table-container";
+      const leftTable = this.createAbilityTableFromRows(headers, leftTableRows);
+      const rightTable = this.createAbilityTableFromRows(headers, rightTableRows);
+      leftTableContainer.appendChild(leftTable);
+      rightTableContainer.appendChild(rightTable);
+      container.appendChild(leftTableContainer);
+      container.appendChild(rightTableContainer);
+    } catch (error) {
+      console.error("Error processing table data for wide format:", error);
+      const errorEl = document.createElement("div");
+      errorEl.textContent = "Error processing ability score tables: " + error.message;
+      errorEl.style.color = "red";
+      container.appendChild(errorEl);
+    }
+  }
+  /**
+   * Create an ability table from raw markdown table rows with better alignment
+   * @param headers - Array of header strings
+   * @param rowTexts - Array of raw markdown table rows
+   * @returns HTMLTableElement with formatted ability scores
+   */
+  createAbilityTableFromRows(headers, rowTexts) {
+    const table = document.createElement("table");
+    table.className = "ability-table";
+    const colgroup = document.createElement("colgroup");
+    headers.forEach((_, index) => {
+      const col = document.createElement("col");
+      if (index === 0) {
+        col.style.width = "45px";
+      } else if (index === 1) {
+        col.style.width = "30px";
+      } else {
+        col.style.width = "30px";
+      }
+      colgroup.appendChild(col);
+    });
+    table.appendChild(colgroup);
+    const thead = document.createElement("thead");
+    const headerRow = document.createElement("tr");
+    for (const header of headers) {
+      const th = document.createElement("th");
+      th.textContent = header;
+      headerRow.appendChild(th);
+    }
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+    const tbody = document.createElement("tbody");
+    for (const rowText of rowTexts) {
+      const tr = document.createElement("tr");
+      const cells = rowText.split("|").filter((_, idx, arr) => idx > 0 && idx < arr.length - 1).map((cell) => cell.trim());
+      for (let j = 0; j < cells.length; j++) {
+        const td = document.createElement("td");
+        if (j === 0) {
+          td.className = "ability-name";
+        }
+        td.textContent = cells[j];
+        tr.appendChild(td);
+      }
+      tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+    return table;
+  }
+  /**
+   * Helper method to create an ability score table
+   * @param headers - Array of header strings
+   * @param dataRows - Array of row strings to process
+   * @returns HTMLTableElement with formatted ability scores
+   */
+  createAbilityTable(headers, dataRows) {
+    const table = document.createElement("table");
+    table.className = "ability-table";
+    const thead = document.createElement("thead");
+    const headerRow = document.createElement("tr");
+    for (const header of headers) {
+      const th = document.createElement("th");
+      th.textContent = header;
+      headerRow.appendChild(th);
+    }
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+    const tbody = document.createElement("tbody");
+    for (const rowText of dataRows) {
+      const tr = document.createElement("tr");
+      const cells = rowText.split("|").filter((_, idx, arr) => idx > 0 && idx < arr.length - 1).map((cell) => cell.trim());
+      console.log("Row cells:", cells);
+      for (let j = 0; j < cells.length; j++) {
+        const td = document.createElement("td");
+        if (j === 0) {
+          td.className = "ability-name";
+        }
+        td.textContent = cells[j];
+        tr.appendChild(td);
+      }
+      tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+    return table;
+  }
+  /**
+   * Process monster stats with enhanced formatting and compact spacing
+   * @param statName - The name of the stat (e.g., "Skills", "Senses")
+   * @param statValue - The value of the stat
+   * @param container - The container to add the stat to
+   */
+  createStatItem(statName, statValue, container) {
+    const statEl = document.createElement("div");
+    statEl.className = "monster-stat-item";
+    const statKey = statName.toLowerCase();
+    if (statKey.includes("initiative")) {
+      statEl.classList.add("stat-initiative");
+    } else if (statKey === "skills") {
+      statEl.classList.add("stat-skills");
+    } else if (statKey === "senses") {
+      statEl.classList.add("stat-senses");
+    } else if (statKey === "languages") {
+      statEl.classList.add("stat-languages");
+    }
+    const isLongContent = this.longStatKeys.some((key) => statKey.includes(key));
+    if (isLongContent) {
+      statEl.classList.add("long-content");
+    }
+    const statLabel = document.createElement("strong");
+    statLabel.textContent = statName + ":";
+    statEl.appendChild(statLabel);
+    statEl.appendChild(document.createTextNode(" " + statValue));
+    container.appendChild(statEl);
+  }
+  /**
+   * Enhanced method to process stats and create more compact layout
+   * @param lines - The lines to process for stats
+   * @param startLine - The line to start processing from
+   * @param leftStatsContainer - Container for left stats
+   * @param rightStatsContainer - Container for right stats
+   * @param additionalStatsContainer - Container for additional stats
+   * @returns [currentLine, hasAdditionalStats] - The current line after processing and whether additional stats were found
+   */
+  processStats(lines, startLine, leftStatsContainer, rightStatsContainer, additionalStatsContainer) {
+    let currentLine = startLine;
+    let hasAdditionalStats = false;
+    const leftStats = ["AC", "HP", "Speed"];
+    const rightStats = ["Initiative"];
+    while (currentLine < lines.length) {
+      const line = lines[currentLine].trim();
+      if (line.startsWith("###") || line === "{{tables" || line === "{!tables") {
+        break;
+      }
+      if (line.includes("::")) {
+        const parts = line.split("::").map((part) => part.trim());
+        if (parts.length === 2) {
+          const statName = parts[0].replace(/\*\*/g, "").trim();
+          const statValue = parts[1].trim();
+          const statKey = statName.toLowerCase();
+          if (leftStats.some((s) => statKey.includes(s.toLowerCase()))) {
+            this.createStatItem(statName, statValue, leftStatsContainer);
+          } else if (rightStats.some((s) => statKey.includes(s.toLowerCase()))) {
+            this.createStatItem(statName, statValue, rightStatsContainer);
+          } else {
+            this.createStatItem(statName, statValue, additionalStatsContainer);
+            hasAdditionalStats = true;
+          }
+        }
+      }
+      currentLine++;
+    }
+    return [currentLine, hasAdditionalStats];
+  }
+  /**
+   * Completely restructured renderMonsterContent to achieve the desired layout
+   */
+  async renderMonsterContent(source, container, formatOptions = { wide: false }) {
     const monster = document.createElement("div");
     monster.className = "monster";
+    if (formatOptions.wide) {
+      monster.classList.add("monster-wide");
+    }
     const lines = source.split("\n");
     let title = "Monster";
     let type = "";
     let currentLine = 0;
-    for (let i = 0; i < lines.length; i++) {
-      if (lines[i].trim().startsWith("##")) {
-        title = lines[i].replace(/^##\s*/, "").trim();
-        currentLine = i + 1;
+    for (let i2 = 0; i2 < lines.length; i2++) {
+      if (lines[i2].trim().startsWith("##")) {
+        title = lines[i2].replace(/^##\s*/, "").trim();
+        currentLine = i2 + 1;
         break;
       }
     }
@@ -230,96 +576,136 @@ var DnD2024StatblockPlugin = class extends import_obsidian.Plugin {
       typeEl.textContent = type;
       monster.appendChild(typeEl);
     }
+    let columnsContainer = null;
+    let leftColumn = null;
+    let rightColumn = null;
+    if (formatOptions.wide) {
+      columnsContainer = document.createElement("div");
+      columnsContainer.className = "monster-columns";
+      monster.appendChild(columnsContainer);
+      leftColumn = document.createElement("div");
+      leftColumn.className = "monster-left-column";
+      columnsContainer.appendChild(leftColumn);
+      rightColumn = document.createElement("div");
+      rightColumn.className = "monster-right-column";
+      columnsContainer.appendChild(rightColumn);
+    }
     const statsEl = document.createElement("div");
     statsEl.className = "monster-stats";
-    monster.appendChild(statsEl);
     const leftStatsEl = document.createElement("div");
     leftStatsEl.className = "monster-left-stats";
     statsEl.appendChild(leftStatsEl);
     const rightStatsEl = document.createElement("div");
     rightStatsEl.className = "monster-right-stats";
     statsEl.appendChild(rightStatsEl);
-    let hasAdditionalStats = false;
-    let additionalStatsEl = null;
-    let tablesContainer = null;
+    const tablesContainer = document.createElement("div");
+    tablesContainer.className = "monster-tables";
+    const additionalStatsEl = document.createElement("div");
+    additionalStatsEl.className = "monster-additional-stats";
+    let sections = [];
     let currentSection = "";
     let currentSectionTitle = "";
-    let inStats = false;
     let inTables = false;
     let tableParts = [];
+    let hasAdditionalStats = false;
     const leftStats = ["AC", "HP", "Speed"];
     const rightStats = ["Initiative"];
-    const additionalStats = ["Skills", "Resistances", "Senses", "Languages", "CR"];
-    for (let i = currentLine; i < lines.length; i++) {
+    let i = currentLine;
+    while (i < lines.length) {
       const line = lines[i].trim();
       if (line.startsWith("###")) {
         if (currentSectionTitle) {
-          await this.addSectionToMonster(monster, currentSectionTitle, currentSection);
+          sections.push({
+            title: currentSectionTitle,
+            content: currentSection.trim()
+            // Trim to remove extra whitespace
+          });
         }
         currentSectionTitle = line.replace(/^###\s*/, "").trim();
         currentSection = "";
+        i++;
       } else if (line === "{{tables" || line === "{!tables") {
         inTables = true;
-        if (!tablesContainer) {
-          tablesContainer = document.createElement("div");
-          tablesContainer.className = "monster-tables";
-          statsEl.appendChild(tablesContainer);
-        }
+        i++;
       } else if ((line === "}}" || line === "}!") && inTables) {
         inTables = false;
-        if (tableParts.length > 0 && tablesContainer) {
-          this.processTableData(tableParts.join("\n"), tablesContainer);
+        if (tableParts.length > 0) {
+          if (formatOptions.wide) {
+            this.processTableDataForWideFormat(tableParts.join("\n"), tablesContainer);
+          } else {
+            this.processTableData(tableParts.join("\n"), tablesContainer);
+          }
           tableParts = [];
         }
+        i++;
       } else if (inTables) {
         tableParts.push(line);
-      } else if (line.includes("::")) {
-        const parts = line.split("::").map((part) => part.trim());
-        if (parts.length === 2) {
-          const statName = parts[0].replace(/\*\*/g, "").trim();
-          const statValue = parts[1].trim();
-          const statEl = document.createElement("div");
-          statEl.className = "monster-stat-item";
-          const statKey = statName.toLowerCase();
-          if (statKey.includes("initiative")) {
-            statEl.classList.add("stat-initiative");
-          }
-          const isLongContent = this.longStatKeys.some((key) => statKey.includes(key));
-          if (isLongContent) {
-            statEl.classList.add("long-content");
-          }
-          const statLabel = document.createElement("strong");
-          statLabel.textContent = statName + ":";
-          statEl.appendChild(statLabel);
-          if (isLongContent) {
-            const contentSpan = document.createElement("span");
-            contentSpan.textContent = " " + statValue;
-            statEl.appendChild(contentSpan);
-          } else {
-            statEl.appendChild(document.createTextNode(" " + statValue));
-          }
-          if (leftStats.some((s) => statKey.includes(s.toLowerCase()))) {
-            leftStatsEl.appendChild(statEl);
-          } else if (rightStats.some((s) => statKey.includes(s.toLowerCase()))) {
-            rightStatsEl.appendChild(statEl);
-          } else {
-            if (!additionalStatsEl) {
-              additionalStatsEl = document.createElement("div");
-              additionalStatsEl.className = "monster-additional-stats";
-              monster.appendChild(additionalStatsEl);
-              hasAdditionalStats = true;
-            }
-            additionalStatsEl.appendChild(statEl);
-          }
-        }
+        i++;
+      } else if (line.includes("::") && !currentSectionTitle) {
+        const [newLine, hasAddStats] = this.processStats(
+          lines,
+          i,
+          leftStatsEl,
+          rightStatsEl,
+          additionalStatsEl
+        );
+        hasAdditionalStats = hasAdditionalStats || hasAddStats;
+        i = newLine;
       } else if (currentSectionTitle && !line.startsWith("{{") && !line.startsWith("}}")) {
         currentSection += line + "\n";
+        i++;
+      } else {
+        i++;
       }
     }
     if (currentSectionTitle) {
-      await this.addSectionToMonster(monster, currentSectionTitle, currentSection);
+      sections.push({
+        title: currentSectionTitle,
+        content: currentSection.trim()
+      });
+    }
+    if (formatOptions.wide && leftColumn && rightColumn) {
+      leftColumn.appendChild(statsEl);
+      if (tablesContainer.children.length > 0) {
+        leftColumn.appendChild(tablesContainer);
+      }
+      if (hasAdditionalStats) {
+        leftColumn.appendChild(additionalStatsEl);
+      }
+      this.distributeSectionsForWideFormat(sections, leftColumn, rightColumn);
+    } else {
+      monster.appendChild(statsEl);
+      if (tablesContainer.children.length > 0) {
+        monster.appendChild(tablesContainer);
+      }
+      if (hasAdditionalStats) {
+        monster.appendChild(additionalStatsEl);
+      }
+      for (const section of sections) {
+        await this.addSectionToMonster(monster, section.title, section.content);
+      }
     }
     container.appendChild(monster);
+  }
+  /**
+   * Add a section directly to an element (for wide format)
+   */
+  async addSectionToElement(element, title, content) {
+    const sectionEl = document.createElement("div");
+    sectionEl.className = "monster-section";
+    const sectionTitleEl = document.createElement("h3");
+    sectionTitleEl.className = "monster-section-title";
+    sectionTitleEl.textContent = title;
+    sectionEl.appendChild(sectionTitleEl);
+    const sectionContentEl = document.createElement("div");
+    await import_obsidian.MarkdownRenderer.renderMarkdown(
+      content,
+      sectionContentEl,
+      "",
+      this
+    );
+    sectionEl.appendChild(sectionContentEl);
+    element.appendChild(sectionEl);
   }
   /**
    * Add a section to the monster block
