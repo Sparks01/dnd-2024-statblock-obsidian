@@ -949,7 +949,7 @@
   font-weight: bold;
   font-family: "ScalySansCaps", "ScalySans", Georgia, "Times New Roman", serif;
   padding-bottom: 2px;
-  text-transform: none;
+  text-transform: uppercase;
   letter-spacing: 0.01em;
 }
 
@@ -962,14 +962,15 @@
   padding-bottom: 2px;
   font-weight: bold;
   font-family: "ScalySansCaps", "ScalySans", Georgia, "Times New Roman", serif;
-  text-transform: none;
+  text-transform: uppercase;
   letter-spacing: 0.01em;
 }
 
 /* Special emphasis for ACTIONS and LEGENDARY ACTIONS headings */
 .monster-wide .monster-right-column .monster-section-title,
 .monster-section-title:contains("ACTIONS"),
-.monster-section-title:contains("LEGENDARY ACTIONS") {
+.monster-section-title:contains("LEGENDARY ACTIONS")
+.monster-section-title:contains("Traits"){
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -1022,6 +1023,7 @@ h3.monster-section-title,
   color: var(--StatLabel_Color);
   font-weight: bold;
   font-variant: small-caps;
+  text-transform: uppercase;
 }
 
 /* Update all section headers to use the appropriate color */
