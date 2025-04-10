@@ -6,7 +6,7 @@ This plugin renders Dungeons & Dragons 2024 (OneD&D) style monster statblocks in
 
 - Supports Homebrewry style inside the monster and monsterwide (for wider statblocks) code block.
 - Includes stat tables, traits, actions, and reactions styling
-- New Feature (experimental) - Markdown Links now work if using the CLI tool. 
+- New Feature (experimental) - Markdown Links now work if using the ttrpg-convert-cli (https://github.com/ebullient/ttrpg-convert-cli/tree/main) tool. 
 
 
 ## Installation
