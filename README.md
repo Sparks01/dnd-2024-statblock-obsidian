@@ -6,7 +6,7 @@ This plugin renders Dungeons & Dragons 2024 (OneD&D) style monster statblocks in
 
 - Supports Homebrewry style inside the monster and monsterwide (for wider statblocks) code block.
 - Includes stat tables, traits, actions, and reactions styling
-- New Feature (experimental) - Wikilinks now work if using the CLI tool. 
+- New Feature (experimental) - Markdown Links now work if using the CLI tool. 
 
 
 ## Installation
