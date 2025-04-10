@@ -1,0 +1,56 @@
+```monsterwide
+{{monster,frame,wide
+## {resource.name}
+*{resource.size} {resource.fullType}, {resource.alignment}*
+{{stats
+{{vitals
+**AC**         :: {resource.ac} {#if resource.acText}({resource.acText}){/if}
+**HP**         :: {resource.hp} ({resource.hitDice})
+**Speed**      :: {resource.speed}
+\column
+**Initiative** :: {resource.scores.dexMod} ({resource.scores.dexStat})
+}}
+{{tables
+|   |   |  MOD | SAVE |
+|:--|:-:|:----:|:----:|
+|Str| {resource.scores.strStat}|  {resource.scores.strMod}  |  {#if resource.savesSkills.saveMap.containsKey("Strength")}{resource.savesSkills.saveMap.Strength}{#else}{resource.scores.strMod}{/if}  |
+|Int| {resource.scores.intStat}|  {resource.scores.intMod}  |  {#if resource.savesSkills.saveMap.containsKey("Intelligence")}{resource.savesSkills.saveMap.Intelligence}{#else}{resource.scores.intMod}{/if}  |
+|   |   |  MOD | SAVE |
+|:--|:-:|:----:|:----:|
+|Dex| {resource.scores.dexStat}|  {resource.scores.dexMod}  |  {#if resource.savesSkills.saveMap.containsKey("Dexterity")}{resource.savesSkills.saveMap.Dexterity}{#else}{resource.scores.dexMod}{/if}  |
+|Wis| {resource.scores.wisStat}|  {resource.scores.wisMod}  |  {#if resource.savesSkills.saveMap.containsKey("Wisdom")}{resource.savesSkills.saveMap.Wisdom}{#else}{resource.scores.wisMod}{/if}  |
+|   |   |  MOD | SAVE |
+|:--|:-:|:----:|:----:|
+|Con| {resource.scores.conStat}|  {resource.scores.conMod}  |  {#if resource.savesSkills.saveMap.containsKey("Constitution")}{resource.savesSkills.saveMap.Constitution}{#else}{resource.scores.conMod}{/if}  |
+|Cha| {resource.scores.chaStat}|  {resource.scores.chaMod}  |  {#if resource.savesSkills.saveMap.containsKey("Charisma")}{resource.savesSkills.saveMap.Charisma}{#else}{resource.scores.chaMod}{/if}  |
+}}
+{#if resource.savingThrows}**Saving Throws** :: {resource.savingThrows}{/if}
+{#if resource.skills}**Skills**     :: {resource.skills}{/if}
+{#if resource.immune}**Damage Immunities** :: {resource.immune}{/if}
+{#if resource.resist}**Damage Resistances** :: {resource.resist}{/if}
+{#if resource.vulnerable}**Damage Vulnerabilities** :: {resource.vulnerable}{/if}
+{#if resource.conditionImmune}**Condition Immunities** :: {resource.conditionImmune}{/if}
+**Senses**      :: {resource.senses}, Passive Perception {resource.passive}
+**Languages**   :: {resource.languages}
+**CR**          :: {resource.cr}
+}}
+{#if resource.trait}### Traits
+{#for trait in resource.trait}***{trait.key}.*** {trait.value}
+{/for}{/if}
+{#if resource.action}### Actions
+{#for action in resource.action}***{action.key}.*** {action.value}
+{/for}{/if}
+{#if resource.bonusAction}### Bonus Actions
+{#for bonus in resource.bonusAction}***{bonus.key}.*** {bonus.value}
+{/for}{/if}
+{#if resource.reaction}### Reactions
+{#for reaction in resource.reaction}***{reaction.key}.*** {reaction.value}
+{/for}{/if}
+{#if resource.legendary}### Legendary Actions
+{#for legendary in resource.legendary}***{legendary.key}.*** {legendary.value}
+{/for}{/if}
+{#if resource.spellcasting}### Spellcasting
+{#for spell in resource.spellcasting}***{spell.name}.*** {spell.desc}
+{/for}{/if}
+}}
+````
