@@ -83,7 +83,7 @@ Use a code block with the `monster` language:
 
 The plugin uses a styles.css file that can be modified to fit your preferences. You can adjust colors, fonts, and other styling properties in this file.
 
-##
+## Artesenal Monster Database
 This git includes monsters from the open Artesenal Monster Database. Unzip the folder and add the folder and it's contents to your Obisdian vault. They are all formatted to work with the plugin. 
 see license.txt for licenses on the monsters. 
 
