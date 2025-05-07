@@ -4,7 +4,7 @@ This plugin renders Dungeons & Dragons 2024 (OneD&D) style monster statblocks in
 
 ## Features
 
-- Supports Homebrewry style inside the ```monster code block.
+- Supports Homebrewry style inside the monster and monsterwide (for wider statblocks) code block.
 - Includes stat tables, traits, actions, and reactions styling
 
 
@@ -12,7 +12,7 @@ This plugin renders Dungeons & Dragons 2024 (OneD&D) style monster statblocks in
 
 ### Manual Installation
 
-1. Download the latest release from the [GitHub releases page](https://github.com/yourusername/dnd-2024-statblock/releases)
+1. Download from the link. 
 2. Extract the zip file to your Obsidian vault's `.obsidian/plugins/` directory
    - The path should look like: `.obsidian/plugins/dnd-2024-statblock/`
 3. Make sure the following files are in the plugin directory:
@@ -83,12 +83,16 @@ Use a code block with the `monster` language:
 
 The plugin uses a styles.css file that can be modified to fit your preferences. You can adjust colors, fonts, and other styling properties in this file.
 
+## Artesenal Monster Database
+This git includes monsters from the open Artesenal Monster Database. Unzip the folder and add the folder and it's contents to your Obisdian vault. They are all formatted to work with the plugin. 
+see license.txt for licenses on the monsters. 
+
 ## Requirements
 
 - Obsidian v0.15.0 or higher
 - Fonts used:
-  - Mrs Eaves Small Caps (for titles)
-  - Bookmania (for body text)
+  - Scaly Sans Caps (for titles)
+  - Scaly Sans (various) (for body text)
 
 ## Contributing
 
