@@ -54,14 +54,14 @@
 .monster-title {
   margin-top: 0;
   margin-bottom: 3px;
-  font-family: "MrsEavesSmallCapsSmallCaps", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+  font-family: "ScalySansCaps", "Palatino Linotype", "Book Antiqua", Palatino, serif;
   font-size: 5mm;
-  letter-spacing: -0.05mm;
+  letter-spacing: -0.02em !important; /* Adjusted letter spacing from previous state */
   border-bottom: 1.5px solid var(--New_Dark_Red);
   color: var(--New_Dark_Red);
   padding-bottom: 2px;
   font-weight: 600;
-  text-transform: none; /* Ensure title is not all caps */
+  text-transform: none; /* Ensure title is not artificially transformed */
 }
 
 /* Monster type styling */
@@ -101,36 +101,37 @@
   text-align: right;
 }
 
-/* Individual stat items */
+/* Individual stat items (applies to .monster-left-stats, .monster-right-stats, and .monster-additional-stats children) */
 .monster-stat-item {
-  margin: 0; /* Removed vertical margins */
-  display: flex;
-  align-items: center; /* Better vertical alignment */
+  margin: 0; 
+  /* display: flex; <-- This is now handled more specifically by :not(.long-content) and .long-content below */
+  /* align-items: center; */
 }
 
-/* Style for stat labels */
+/* Style for stat labels in all stat items */
 .monster-stat-item strong {
   color: var(--New_Dark_Red);
   font-weight: bold;
   font-variant: small-caps;
-  margin-right: 3px;
+  margin-right: 0.33em; /* Use em for spacing relative to font size */
   white-space: nowrap;
+  flex-shrink: 0; /* If parent is flex, prevent label from shrinking */
 }
 
 /* Tables container with grid layout for precise control */
 .monster-tables {
-  grid-column: 1 / -1;
+  grid-column: 1 / -1; /* For when .monster-stats is the grid parent */
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 columns, one for each table */
-  grid-gap: 4px; /* Small gap between tables */
+  grid-template-columns: repeat(3, 1fr); /* 3 columns for standard ability tables */
+  grid-gap: 4px; 
   margin: 8px 0 10px 0;
 }
 
 /* Individual tables, now one per column */
 .monster-table {
   width: 100%;
-  border-collapse: collapse; /* Changed to collapse */
-  table-layout: fixed; /* Force the browser to respect our widths */
+  border-collapse: collapse; 
+  table-layout: fixed; 
 }
 
 /* Table headers - small and centered */
@@ -151,8 +152,8 @@
   font-weight: bold;
   font-variant: small-caps;
   text-align: left;
-  padding: 1px 0 1px 2px; /* Only padding on left */
-  width: 22px !important; /* Narrower */
+  padding: 1px 0 1px 2px; 
+  width: 22px !important; 
   font-size: 1em;
 }
 
@@ -160,7 +161,7 @@
   font-weight: bold;
   text-align: center;
   padding: 1px 0;
-  width: 15px !important; /* Fixed narrow width */
+  width: 15px !important; 
   font-size: 1em;
 }
 
@@ -168,7 +169,7 @@
 .monster-table td:nth-child(4) {
   text-align: center;
   padding: 1px 0;
-  width: 15px !important; /* Fixed narrow width */
+  width: 15px !important; 
   font-size: 1em;
 }
 
@@ -194,31 +195,75 @@
 }
 
 /* Alternating row colors for tables - FLIPPED */
-.monster-table tr:nth-child(odd) td {
-  background-color: var(--Monster_Table_Purple);
-}
-
-.monster-table tr:nth-child(odd) td:first-child {
-  background-color: var(--Monster_Table_Green);
-}
-
-.monster-table tr:nth-child(even) td {
-  background-color: var(--Monster_Table_Red);
-}
-
-.monster-table tr:nth-child(even) td:first-child {
-  background-color: var(--Monster_Table_Yellow);
-}
+.monster-table tr:nth-child(odd) td { background-color: var(--Monster_Table_Purple); }
+.monster-table tr:nth-child(odd) td:first-child { background-color: var(--Monster_Table_Green); }
+.monster-table tr:nth-child(even) td { background-color: var(--Monster_Table_Red); }
+.monster-table tr:nth-child(even) td:first-child { background-color: var(--Monster_Table_Yellow); }
 
 /* Additional stats below tables */
 .monster-additional-stats {
-  grid-column: 1 / -1;
+  /* grid-column: 1 / -1; /* Only if parent .monster is a grid and this is a direct child */
   display: flex;
   flex-direction: column;
-  gap: 2px; /* Tighter spacing */
-  margin-top: 0;
+  gap: 2px; 
+  margin-top: 0; /* Was 0, can be adjusted e.g. 8px if more space needed from tables */
   margin-bottom: 10px;
 }
+
+/* Styling for .long-content stat items (e.g., Condition Immunities) */
+.monster-additional-stats .monster-stat-item.long-content {
+  display: block; /* Allows label and value to flow like a paragraph */
+  margin-bottom: 8px; /* Increased from 4px default for better separation */
+  text-align: left;
+  line-height: 1.4; /* Ensure consistent line height */
+}
+
+.monster-additional-stats .monster-stat-item.long-content strong {
+  display: inline; /* Label flows with text */
+  /* margin-right: 0.33em; Already set by general .monster-stat-item strong */
+}
+
+.monster-additional-stats .monster-stat-item.long-content span {
+  display: inline; /* Value span flows with text */
+  padding-left: 0; /* Ensure no extra padding from span itself */
+  margin-left: 0;
+  color: #000; /* Text color for the value */
+}
+
+/* Styling for regular (non-long-content) stat items (e.g., Saving Throws, Skills) */
+.monster-additional-stats .monster-stat-item:not(.long-content) {
+  display: flex;
+  align-items: baseline; /* Align text baselines of label and value */
+  margin-bottom: 4px;
+  line-height: 1.4; /* Ensure consistent line height */
+}
+
+.monster-additional-stats .monster-stat-item:not(.long-content) strong {
+  /* Already styled by general .monster-stat-item strong */
+  /* flex-shrink: 0; is good here, inherited */
+}
+
+/* The span containing the value for non-long-content stats */
+.monster-additional-stats .monster-stat-item:not(.long-content) span {
+  display: inline; 
+  /* flex-grow: 1; /* Uncomment if you want the value to take all remaining space, might cause issues if value is short */
+  /* white-space: normal; /* Allow values to wrap if they are very long, but usually these are short */
+}
+
+/* 
+  CRITICAL FIX for injected <p> tags by MarkdownRenderer in ANY stat value.
+*/
+.monster-stat-item span > p {
+  display: inline !important; 
+  margin: 0 !important;      
+  padding: 0 !important;     
+}
+
+/* Ensure anchor tags themselves behave as inline elements within stat values */
+.monster-stat-item span a {
+    display: inline; /* Usually default, but good to be explicit */
+}
+
 
 /* Section with class "monster-section" */
 .monster-section {
@@ -231,12 +276,19 @@
   line-height: 1.4;
 }
 
-/* Styling for action names and trait names */
-.monster-section p strong,
-.monster-section em {
-  color: var(--New_Dark_Red);
+/* Styling for action names and trait names within sections */
+/* This was previously var(--New_Dark_Red), then changed to #000 per later request */
+.monster-section p em:first-child,
+.monster-section p strong:first-child {
+  color: #000 !important; 
   font-weight: bold;
   font-style: italic;
+}
+
+/* Special styling for "Trigger:" and "Response:" in Reactions */
+.monster-section p em ~ em {
+  font-weight: normal;
+  color: inherit; /* Inherits from parent paragraph */
 }
 
 /* Section title styling */
@@ -247,19 +299,22 @@
   margin-bottom: 0.2em;
   border-bottom: 1.5px solid var(--New_Dark_Red);
   font-weight: bold;
-  font-family: "ScalySans", Georgia, "Times New Roman", serif;
+  font-family: "ScalySansCaps", "ScalySans", Georgia, "Times New Roman", serif;
   padding-bottom: 2px;
-  text-transform: none;
+  text-transform: none; 
+  letter-spacing: 0.01em;
 }
 
 /* Responsive adjustments for medium screens */
 @media (max-width: 600px) {
-  .monster-stats {
-    grid-template-columns: 1fr;
+  .monster-stats { /* The AC/HP/Speed/Initiative grid */
+    grid-template-columns: 1fr; /* Stack them */
   }
-  
   .monster-right-stats .stat-initiative {
-    text-align: left;
+    text-align: left; /* Align initiative left when stacked */
+  }
+  .monster-tables { /* Standard ability score tables */
+     grid-template-columns: 1fr 1fr; /* Try to fit two tables side-by-side */
   }
 }
 
@@ -269,30 +324,288 @@
     padding: 10px 8px;
     font-size: 9pt;
   }
-  
   .monster-stats {
     column-gap: 8px;
   }
-  
-  /* Keep tables in their layout but adjust sizing */
-  .monster-tables {
-    grid-template-columns: repeat(6, 1fr);
+  .monster-tables { /* Standard ability score tables */
+    grid-template-columns: 1fr; /* Stack all three tables */
   }
-  
-  .monster-table td {
+  .monster-table td { /* Make table cells even smaller */
     padding: 2px 1px;
     font-size: 0.9em;
   }
 }
 
-/* Special styling for action and reaction items */
-.monster-section p em:first-child {
-  font-weight: bold;
-  color: var(--New_Dark_Red);
+
+/* ========== WIDE FORMAT STYLES ========== */
+.monster-container-wide {
+  max-width: 800px;
+  margin: 1em auto;
 }
 
-/* Special styling for "Trigger:" and "Response:" in Reactions */
-.monster-section p em ~ em {
+.monster-wide {
+  max-width: 800px;
+  padding: 20px; /* Overall padding inside the frame */
+  background-color: var(--MonsterBackground);
+  position: relative;
+  border: 1px solid var(--MonsterBorder);
+  border-radius: 10px;
+  box-shadow: 0 1px 4px var(--MonsterShadow);
+}
+
+.monster-wide::before {
+  content: "";
+  position: absolute;
+  top: 5px; left: 5px; right: 5px; bottom: 5px;
+  border: 1px solid var(--MonsterBorder);
+  border-radius: 7px;
+  pointer-events: none;
+}
+
+.monster-wide .monster-title {
+  font-size: 22px;
+  margin: 0 0 2px 0;
+  border-bottom: 1.5px solid var(--New_Dark_Red);
+  padding-bottom: 3px;
+  color: var(--New_Dark_Red);
+  font-family: "ScalySansCaps", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+  font-weight: bold;
+  letter-spacing: -0.02em !important; 
+}
+
+.monster-wide .monster-type {
+  font-style: italic;
+  margin: 0 0 10px 0;
+  color: var(--Light_Gray);
+}
+
+/* L-shaped layout for the monster columns */
+.monster-wide .monster-columns {
+  display: flex;
+  gap: 20px; /* Adjust this value for the desired space between columns */
+  align-items: flex-start; /* Align tops of columns if their content heights differ */
+}
+
+.monster-wide .monster-left-column {
+  flex: 0 0 42%; 
+  min-width: 0; 
+  /* max-width: 42%; /* flex-basis should handle this, but can be re-added if strictness is needed */
+  overflow: hidden; /* Clips content that absolutely refuses to wrap, as a last resort */
+}
+
+.monster-wide .monster-right-column {
+  flex: 1; 
+  min-width: 0; 
+  overflow: hidden; /* Clips content that absolutely refuses to wrap */
+}
+
+/* Styling for direct children of the columns */
+.monster-wide .monster-left-column > *,
+.monster-wide .monster-right-column > * {
+  box-sizing: border-box;
+  width: 100%; /* Make direct children fill the column width */
+}
+
+/* Ensure all key text-containing elements within columns attempt to wrap aggressively */
+.monster-wide .monster-left-column :is(p, div, span, li, td, th, pre, code),
+.monster-wide .monster-right-column :is(p, div, span, li, td, th, pre, code) {
+  overflow-wrap: break-word; /* Standard property */
+  word-wrap: break-word;     /* Older property for wider compatibility */
+  word-break: break-word;  /* More aggressive breaking if the above aren't enough, try this last */
+  white-space: normal !important; /* Override any deeper 'nowrap' settings */
+}
+
+
+/* Stats layout (AC, HP, etc.) in wide format - these are in .monster-left-column */
+.monster-wide .monster-stats { 
+  display: grid;
+  grid-template-columns: 1fr auto; 
+  column-gap: 15px;
+  row-gap: 3px;
+  margin-bottom: 10px;
+}
+
+.monster-wide .monster-left-stats { 
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.monster-wide .monster-right-stats { 
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: flex-start;
+  text-align: right; 
+}
+.monster-wide .monster-right-stats .stat-initiative {
+    text-align: right; 
+}
+
+
+/* Basic stat items (AC, HP, Speed, Init) in wide format */
+.monster-wide .monster-stat-item { /* Applies to items in .monster-left-stats, .monster-right-stats, AND .monster-additional-stats */
+  display: flex; /* Default for most stat items */
+  align-items: baseline; /* Good for aligning label with value text */
+  margin-bottom: 2px; /* Default margin */
+}
+
+/* Specific to AC, HP, Speed, Init which are direct children of .monster-left-stats or .monster-right-stats */
+.monster-wide .monster-left-stats .monster-stat-item,
+.monster-wide .monster-right-stats .monster-stat-item {
+  white-space: nowrap; /* Keep these short stats on one line */
+}
+
+.monster-wide .monster-stat-item strong {
+  /* General .monster-stat-item strong from standard view applies for color, font-variant */
+  margin-right: 0.5em; 
+}
+
+/* 2×3 Ability Score Table Layout - in .monster-left-column */
+.monster-wide .monster-tables {
+  display: flex; 
+  gap: 8px; 
+  margin: 8px 0;
+  width: 100%; /* Ensure it uses the full width of its container in left-column */
+}
+
+.monster-wide .ability-table-container {
+  flex: 1; 
+  min-width: 0; 
+}
+
+.monster-wide .ability-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.monster-wide .ability-table th {
+  color: #666;
   font-weight: normal;
-  color: inherit;
+  font-size: 9px; 
+  text-align: center;
+  padding: 0;
+  height: 12px; 
+}
+
+.monster-wide .ability-table td {
+  padding: 2px 3px; 
+  text-align: center;
+  height: 18px; /* Removed !important, let content flow a bit if needed with wrapping */
+  font-size: 13px; 
+  font-weight: bold;
+  /* white-space: nowrap; <-- This was causing overflow, handled by general rule above now */
+}
+
+.monster-wide .ability-table td.ability-name {
+  color: var(--New_Dark_Red);
+  font-variant: small-caps; 
+  text-align: left;
+  padding-left: 8px;
+  white-space: nowrap; /* Keep ability name itself on one line with ellipsis */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.monster-wide .ability-table col:first-child { width: 40px; } 
+.monster-wide .ability-table col:nth-child(2) { width: 28px; } 
+.monster-wide .ability-table col:nth-child(3) { width: 35px; } 
+.monster-wide .ability-table col:nth-child(4) { width: 35px; } 
+
+
+.monster-wide .ability-table tr:nth-child(odd) td { background-color: var(--Monster_Table_Purple); }
+.monster-wide .ability-table tr:nth-child(odd) td.ability-name { background-color: var(--Monster_Table_Green); }
+.monster-wide .ability-table tr:nth-child(even) td { background-color: var(--Monster_Table_Red); }
+.monster-wide .ability-table tr:nth-child(even) td.ability-name { background-color: var(--Monster_Table_Yellow); }
+
+/* Additional stats (Skills, Senses, etc.) in wide format - in .monster-left-column */
+.monster-wide .monster-additional-stats {
+  margin: 6px 0; 
+  display: flex;
+  flex-direction: column;
+  gap: 2px; 
+}
+
+/* Individual stat items within .monster-additional-stats in wide format */
+/* .monster-wide .monster-additional-stats .monster-stat-item inherits from .monster-wide .monster-stat-item */
+.monster-wide .monster-additional-stats .monster-stat-item {
+  line-height: 1.3; 
+  margin-bottom: 3px; 
+  white-space: normal; /* Allow these longer stats to wrap, overriding the .monster-wide .monster-stat-item nowrap */
+}
+.monster-wide .monster-additional-stats .monster-stat-item:not(.long-content) {
+    display: flex; /* Already set by .monster-wide .monster-stat-item */
+    align-items: baseline; /* Already set by .monster-wide .monster-stat-item */
+}
+.monster-wide .monster-additional-stats .monster-stat-item.long-content {
+    display: block; /* Override the display:flex from general .monster-wide .monster-stat-item */
+}
+
+
+/* Section styling in wide format */
+.monster-wide .monster-section {
+  margin-bottom: 15px; 
+  width: 100%; /* Ensure sections try to use full column width */
+  box-sizing: border-box;
+}
+
+.monster-wide .monster-section-title {
+  color: var(--New_Dark_Red);
+  font-size: 15px;
+  margin: 0 0 6px 0; 
+  border-bottom: 1.5px solid var(--New_Dark_Red);
+  padding-bottom: 2px;
+  font-weight: bold;
+  font-family: "ScalySansCaps", "ScalySans", Georgia, "Times New Roman", serif;
+  text-transform: none; 
+  letter-spacing: 0.01em;
+}
+
+.monster-wide .monster-right-column .monster-section-title {
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.monster-wide .monster-right-column .monster-section:not(:first-child) .monster-section-title {
+    margin-top: 15px; 
+}
+.monster-wide .monster-left-column .monster-section:not(:first-child) .monster-section-title {
+    margin-top: 10px; 
+}
+
+
+.monster-wide .monster-section p {
+  margin: 6px 0; 
+  line-height: 1.4;
+  /* overflow-wrap and word-wrap are handled by the general column descendant rule */
+}
+
+/* For code blocks if they appear in descriptions, ensure they wrap */
+.monster-wide .monster-section code,
+.monster-wide .monster-section pre {
+    white-space: pre-wrap !important; 
+    word-break: break-all !important; /* More aggressive breaking for code */
+    overflow-wrap: break-word !important; /* Belt and suspenders */
+    word-wrap: break-word !important;
+}
+
+
+.monster-wide .monster-section p em:first-child,
+.monster-wide .monster-section p strong:first-child {
+  color: #000 !important; 
+  font-weight: bold;
+  font-style: italic;
+}
+
+/* Remove borders from tables and cells, should be default but explicit */
+.monster-wide .ability-table, .monster-wide .ability-table td, .monster-wide .ability-table th,
+.monster-table, .monster-table td, .monster-table th {
+    border: none !important;
+}
+
+/* Revisit .monster-wide .monster-left-column > * if problems persist with padding/margin */
+/* Default block elements will take width:100% of parent column if not otherwise specified */
+.monster-wide .monster-left-column > * {
+  box-sizing: border-box; /* Keep this */
+  /* width: 100%; /* Usually not needed for block children of flex items */
 }

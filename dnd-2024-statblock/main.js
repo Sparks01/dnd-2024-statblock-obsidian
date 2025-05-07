@@ -29,18 +29,35 @@ __export(main_exports, {
 module.exports = __toCommonJS(main_exports);
 var import_obsidian = require("obsidian");
 var DnD2024StatblockPlugin = class extends import_obsidian.Plugin {
+  constructor() {
+    super(...arguments);
+    this.longStatKeys = [
+      "damage resistances",
+      "damage immunities",
+      "condition immunities",
+      "proficiency bonus",
+      "challenge",
+      "senses"
+    ];
+  }
   async onload() {
     console.log("Loading D&D 2024 Statblock Plugin");
     this.loadFonts();
-    this.registerMarkdownCodeBlockProcessor("monster", this.processMonsterBlock.bind(this));
+    this.registerMarkdownCodeBlockProcessor("monster", async (source, el, ctx) => {
+      await this.processMonsterBlock(source, el, ctx.sourcePath);
+    });
+    this.registerMarkdownCodeBlockProcessor("monsterwide", async (source, el, ctx) => {
+      console.log("Processing monsterwide block");
+      const container = document.createElement("div");
+      container.className = "monster-container monster-container-wide";
+      await this.renderMonsterContent(source, container, { wide: true, sourcePath: ctx.sourcePath });
+      el.appendChild(container);
+    });
     this.registerMarkdownPostProcessor(this.processInlineMonsters.bind(this));
   }
   onunload() {
     console.log("Unloading D&D 2024 Statblock Plugin");
   }
-  /**
-   * Load fonts directly using FileSystem API and Data URLs
-   */
   async loadFonts() {
     try {
       const fs = require("fs");
@@ -61,52 +78,20 @@ var DnD2024StatblockPlugin = class extends import_obsidian.Plugin {
       const scalySansBold = loadFont("Scaly Sans Bold.otf", "opentype");
       const scalySansItalic = loadFont("Scaly Sans Italic.otf", "opentype");
       const scalySansBoldItalic = loadFont("Scaly Sans Bold Italic.otf", "opentype");
-      const mrsEaves = loadFont("MrsEavesSmallCapsSmallCaps.ttf", "truetype");
+      const scalySansCaps = loadFont("Scaly Sans Caps.woff2", "opentype");
+      const mrsEaves = loadFont("MrsEavesSmallCaps.ttf", "truetype");
       const fontStyle = document.createElement("style");
       fontStyle.id = "dnd-2024-fonts";
       fontStyle.textContent = `
-      @font-face {
-        font-family: "MrsEavesSmallCapsSmallCaps";
-        src: ${mrsEaves ? `url("${mrsEaves}") format("truetype")` : ""};
-        font-display: swap;
-      }
-      
-      @font-face {
-        font-family: "ScalySans";
-        src: ${scalySansRegular ? `url("${scalySansRegular}") format("opentype")` : ""};
-        font-weight: normal;
-        font-style: normal;
-        font-display: swap;
-      }
-      
-      @font-face {
-        font-family: "ScalySans";
-        src: ${scalySansBold ? `url("${scalySansBold}") format("opentype")` : ""};
-        font-weight: bold;
-        font-style: normal;
-        font-display: swap;
-      }
-      
-      @font-face {
-        font-family: "ScalySans";
-        src: ${scalySansItalic ? `url("${scalySansItalic}") format("opentype")` : ""};
-        font-weight: normal;
-        font-style: italic;
-        font-display: swap;
-      }
-      
-      @font-face {
-        font-family: "ScalySans";
-        src: ${scalySansBoldItalic ? `url("${scalySansBoldItalic}") format("opentype")` : ""};
-        font-weight: bold;
-        font-style: italic;
-        font-display: swap;
-      }
-    `;
+        @font-face { font-family: "MrsEavesSmallCaps"; src: ${mrsEaves ? `url("${mrsEaves}") format("truetype")` : ""}; font-display: swap; }
+        @font-face { font-family: "ScalySansCaps"; src: ${scalySansCaps ? `url("${scalySansCaps}") format("opentype")` : ""}; font-weight: normal; font-style: normal; font-display: swap; }
+        @font-face { font-family: "ScalySans"; src: ${scalySansRegular ? `url("${scalySansRegular}") format("opentype")` : ""}; font-weight: normal; font-style: normal; font-display: swap; }
+        @font-face { font-family: "ScalySans"; src: ${scalySansBold ? `url("${scalySansBold}") format("opentype")` : ""}; font-weight: bold; font-style: normal; font-display: swap; }
+        @font-face { font-family: "ScalySans"; src: ${scalySansItalic ? `url("${scalySansItalic}") format("opentype")` : ""}; font-weight: normal; font-style: italic; font-display: swap; }
+        @font-face { font-family: "ScalySans"; src: ${scalySansBoldItalic ? `url("${scalySansBoldItalic}") format("opentype")` : ""}; font-weight: bold; font-style: italic; font-display: swap; }`;
       const existingStyle = document.getElementById("dnd-2024-fonts");
-      if (existingStyle) {
+      if (existingStyle)
         existingStyle.remove();
-      }
       document.head.appendChild(fontStyle);
       console.log("D&D 2024 Statblock fonts loaded via data URLs");
     } catch (error) {
@@ -114,36 +99,38 @@ var DnD2024StatblockPlugin = class extends import_obsidian.Plugin {
       const fallbackStyle = document.createElement("style");
       fallbackStyle.id = "dnd-2024-fonts-fallback";
       fallbackStyle.textContent = `
-      .monster-container {
-        font-family: Georgia, "Times New Roman", serif !important;
-      }
-      
-      .monster-title {
-        font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif !important;
-      }
-    `;
+        .monster-container { font-family: Georgia, "Times New Roman", serif !important; }
+        .monster-title { font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif !important; }`;
       document.head.appendChild(fallbackStyle);
       console.log("Using fallback fonts due to error loading custom fonts");
     }
   }
-  /**
-   * Process a code block with the monster language
-   */
-  async processMonsterBlock(source, el) {
+  extractFormatOptions(source) {
+    const options = { wide: false };
+    if (source.includes("{{monster,frame,wide") || source.includes("{!monster,frame,wide")) {
+      options.wide = true;
+    }
+    if (source.startsWith("wide\n") || source.startsWith("wide ")) {
+      options.wide = true;
+    }
+    return options;
+  }
+  async processMonsterBlock(source, el, sourcePath) {
     try {
       console.log("Processing monster code block");
+      const formatOptions = this.extractFormatOptions(source);
       const container = document.createElement("div");
       container.className = "monster-container";
-      await this.renderMonsterContent(source, container);
+      if (formatOptions.wide) {
+        container.classList.add("monster-container-wide");
+      }
+      await this.renderMonsterContent(source, container, { wide: formatOptions.wide, sourcePath });
       el.appendChild(container);
     } catch (error) {
       console.error("Error processing monster block:", error);
       el.createEl("div", { text: "Error processing monster statblock: " + error.message });
     }
   }
-  /**
-   * Process Homebrewery style inline monster blocks
-   */
   async processInlineMonsters(el, ctx) {
     try {
       if (el.closest("pre"))
@@ -151,16 +138,30 @@ var DnD2024StatblockPlugin = class extends import_obsidian.Plugin {
       const textNodes = this.getTextNodes(el);
       for (const node of textNodes) {
         const text = node.textContent || "";
-        if (text.includes("{{monster,frame") || text.includes("{!monster,frame")) {
-          const startIndex = text.indexOf("{{monster,frame");
-          const endIndex = text.indexOf("}}", startIndex);
+        const widePattern = /\{\{monster,frame,wide|\{!monster,frame,wide/;
+        const standardPattern = /\{\{monster,frame|\{!monster,frame/;
+        let match;
+        let isWide = false;
+        let startTag = "";
+        if (match = text.match(widePattern)) {
+          isWide = true;
+          startTag = match[0];
+        } else if (match = text.match(standardPattern)) {
+          isWide = false;
+          startTag = match[0];
+        }
+        if (match && startTag && typeof match.index === "number") {
+          const startIndex = match.index;
+          const endIndex = text.indexOf("}}", startIndex + startTag.length);
           if (startIndex >= 0 && endIndex > startIndex) {
-            const monsterContent = text.substring(startIndex + "{{monster,frame".length, endIndex);
+            const monsterContent = text.substring(startIndex + startTag.length, endIndex);
             const beforeText = document.createTextNode(text.substring(0, startIndex));
             const afterText = document.createTextNode(text.substring(endIndex + 2));
             const monsterContainer = document.createElement("div");
             monsterContainer.className = "monster-container";
-            await this.renderMonsterContent(monsterContent, monsterContainer);
+            if (isWide)
+              monsterContainer.classList.add("monster-container-wide");
+            await this.renderMonsterContent(monsterContent, monsterContainer, { wide: isWide, sourcePath: ctx.sourcePath });
             const parent = node.parentNode;
             if (parent) {
               parent.insertBefore(beforeText, node);
@@ -175,9 +176,6 @@ var DnD2024StatblockPlugin = class extends import_obsidian.Plugin {
       console.error("Error processing inline monsters:", error);
     }
   }
-  /**
-   * Get all text nodes in an element
-   */
   getTextNodes(el) {
     const textNodes = [];
     const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
@@ -187,179 +185,368 @@ var DnD2024StatblockPlugin = class extends import_obsidian.Plugin {
     }
     return textNodes;
   }
-  // Add these changes to your renderMonsterContent method
-  /**
-   * Render monster content into a container
-   */
-  async renderMonsterContent(source, container) {
-    const monster = document.createElement("div");
-    monster.className = "monster";
-    const lines = source.split("\n");
-    let title = "Monster";
-    let type = "";
-    let currentLine = 0;
-    for (let i = 0; i < lines.length; i++) {
-      if (lines[i].trim().startsWith("##")) {
-        title = lines[i].replace(/^##\s*/, "").trim();
-        currentLine = i + 1;
-        break;
-      }
+  distributeSectionsForWideFormat(sections, leftColumn, rightColumn, sourcePath) {
+    if (sections.length === 0)
+      return;
+    const traitsPattern = /^traits$/i;
+    const actionsPattern = /^actions$/i;
+    const bonusActionsPattern = /^bonus actions$/i;
+    const legendaryActionsPattern = /^legendary actions$/i;
+    const reactionsPattern = /^reactions$/i;
+    let leftSections = [];
+    let rightSections = [];
+    sections.forEach((section) => {
+      const title = section.title.toLowerCase();
+      if (traitsPattern.test(title))
+        leftSections.push(section);
+      else if (actionsPattern.test(title) || bonusActionsPattern.test(title) || legendaryActionsPattern.test(title) || reactionsPattern.test(title))
+        rightSections.push(section);
+      else
+        leftSections.push(section);
+    });
+    const originalOrder = sections.map((s) => s.title);
+    leftSections.sort((a, b) => originalOrder.indexOf(a.title) - originalOrder.indexOf(b.title));
+    rightSections.sort((a, b) => originalOrder.indexOf(a.title) - originalOrder.indexOf(b.title));
+    this.renderSectionsToColumn(leftSections, leftColumn, sourcePath);
+    this.renderSectionsToColumn(rightSections, rightColumn, sourcePath);
+  }
+  // This method was in your original and seems unused, but kept for completeness.
+  getSectionCategory(title, categories) {
+    const lowercaseTitle = title.toLowerCase();
+    for (const [category, keywords] of Object.entries(categories)) {
+      if (keywords.some((keyword) => lowercaseTitle.includes(keyword)))
+        return category;
     }
-    if (currentLine < lines.length && lines[currentLine].trim().startsWith("*")) {
-      type = lines[currentLine].replace(/^\*|\*$/g, "").trim();
-      currentLine++;
+    return "misc";
+  }
+  // This method was in your original and seems unused, but kept for completeness.
+  sumContentLength(sections) {
+    return sections.reduce((sum, section) => sum + section.length, 0);
+  }
+  async renderSectionsToColumn(sections, column, sourcePath) {
+    for (const section of sections) {
+      const sectionEl = column.createDiv({ cls: "monster-section" });
+      sectionEl.createEl("h3", { cls: "monster-section-title", text: section.title });
+      const sectionContentEl = sectionEl.createDiv();
+      await import_obsidian.MarkdownRenderer.renderMarkdown(section.content, sectionContentEl, sourcePath, this);
     }
-    const titleEl = document.createElement("h2");
-    titleEl.className = "monster-title";
-    titleEl.textContent = title;
-    monster.appendChild(titleEl);
-    if (type) {
-      const typeEl = document.createElement("p");
-      typeEl.className = "monster-type";
-      typeEl.textContent = type;
-      monster.appendChild(typeEl);
+  }
+  processTableDataForWideFormat(tableContent, container) {
+    try {
+      container.innerHTML = "";
+      const tables = tableContent.split("\n\n").filter((table) => table.trim());
+      const abilityScores = {};
+      tables.forEach((tableText) => {
+        const rows = tableText.split("\n").filter((row) => row.trim());
+        if (rows.length < 3)
+          return;
+        const dataRows = rows.slice(2);
+        dataRows.forEach((row) => {
+          const match = row.match(/\|(Str|Dex|Con|Int|Wis|Cha)\|/i);
+          if (match)
+            abilityScores[match[1].toLowerCase()] = row;
+        });
+      });
+      if (tables.length === 0)
+        return;
+      const firstTableRows = tables[0].split("\n").filter((row) => row.trim());
+      if (firstTableRows.length === 0)
+        return;
+      const headers = firstTableRows[0].split("|").filter((_, idx, arr) => idx > 0 && idx < arr.length - 1).map((cell) => cell.trim());
+      const leftTableRows = [], rightTableRows = [];
+      if (abilityScores["str"])
+        leftTableRows.push(abilityScores["str"]);
+      if (abilityScores["dex"])
+        leftTableRows.push(abilityScores["dex"]);
+      if (abilityScores["con"])
+        leftTableRows.push(abilityScores["con"]);
+      if (abilityScores["int"])
+        rightTableRows.push(abilityScores["int"]);
+      if (abilityScores["wis"])
+        rightTableRows.push(abilityScores["wis"]);
+      if (abilityScores["cha"])
+        rightTableRows.push(abilityScores["cha"]);
+      const leftTableContainer = container.createDiv({ cls: "ability-table-container" });
+      const rightTableContainer = container.createDiv({ cls: "ability-table-container" });
+      if (leftTableRows.length > 0)
+        leftTableContainer.appendChild(this.createAbilityTableFromRows(headers, leftTableRows));
+      if (rightTableRows.length > 0)
+        rightTableContainer.appendChild(this.createAbilityTableFromRows(headers, rightTableRows));
+      if (!leftTableContainer.hasChildNodes())
+        leftTableContainer.remove();
+      if (!rightTableContainer.hasChildNodes())
+        rightTableContainer.remove();
+    } catch (error) {
+      console.error("Error processing table data for wide format:", error);
+      container.createDiv({ text: "Error processing table data for wide format: " + error.message, attr: { style: "color:red;" } });
     }
-    const statsEl = document.createElement("div");
-    statsEl.className = "monster-stats";
-    monster.appendChild(statsEl);
-    const leftStatsEl = document.createElement("div");
-    leftStatsEl.className = "monster-left-stats";
-    statsEl.appendChild(leftStatsEl);
-    const rightStatsEl = document.createElement("div");
-    rightStatsEl.className = "monster-right-stats";
-    statsEl.appendChild(rightStatsEl);
+  }
+  createAbilityTableFromRows(headers, rowTexts) {
+    const table = document.createElement("table");
+    table.className = "ability-table";
+    const colgroup = table.createEl("colgroup");
+    headers.forEach((_, index) => {
+      const col = colgroup.createEl("col");
+    });
+    const thead = table.createTHead();
+    const headerRow = thead.insertRow();
+    headers.forEach((header) => headerRow.createEl("th", { text: header }));
+    const tbody = table.createTBody();
+    rowTexts.forEach((rowText) => {
+      const tr = tbody.insertRow();
+      const cells = rowText.split("|").filter((_, idx, arr) => idx > 0 && idx < arr.length - 1).map((cell) => cell.trim());
+      cells.forEach((cell, j) => {
+        const td = tr.insertCell();
+        if (j === 0)
+          td.className = "ability-name";
+        td.textContent = cell;
+      });
+    });
+    return table;
+  }
+  createAbilityTable(headers, dataRows) {
+    const table = document.createElement("table");
+    table.className = "ability-table";
+    const thead = table.createTHead();
+    const headerRow = thead.insertRow();
+    headers.forEach((headerText) => headerRow.createEl("th", { text: headerText }));
+    const tbody = table.createTBody();
+    dataRows.forEach((rowText) => {
+      const tr = tbody.insertRow();
+      const cells = rowText.split("|").filter((_, idx, arr) => idx > 0 && idx < arr.length - 1).map((cell) => cell.trim());
+      cells.forEach((cellText, j) => {
+        const td = tr.insertCell();
+        if (j === 0)
+          td.className = "ability-name";
+        td.textContent = cellText;
+      });
+    });
+    return table;
+  }
+  // MODIFIED createStatItem
+  async createStatItem(statName, statValue, container, sourcePath) {
+    const statEl = container.createDiv({ cls: "monster-stat-item" });
+    const statKey = statName.toLowerCase();
+    if (statKey.includes("initiative"))
+      statEl.classList.add("stat-initiative");
+    else if (statKey === "skills")
+      statEl.classList.add("stat-skills");
+    else if (statKey === "senses")
+      statEl.classList.add("stat-senses");
+    else if (statKey === "languages")
+      statEl.classList.add("stat-languages");
+    if (this.longStatKeys.some((key) => statKey.includes(key)))
+      statEl.classList.add("long-content");
+    statEl.createEl("strong", { text: statName + ":" });
+    statEl.appendChild(document.createTextNode(" "));
+    const statValueSpan = statEl.createSpan();
+    await import_obsidian.MarkdownRenderer.renderMarkdown(statValue, statValueSpan, sourcePath, this);
+  }
+  // MODIFIED processStats (to be async and pass sourcePath)
+  async processStats(lines, startLine, leftStatsContainer, rightStatsContainer, additionalStatsContainer, sourcePath) {
+    let currentLine = startLine;
     let hasAdditionalStats = false;
-    let additionalStatsEl = null;
-    let tablesContainer = null;
-    let currentSection = "";
-    let currentSectionTitle = "";
-    let inStats = false;
-    let inTables = false;
-    let tableParts = [];
     const leftStats = ["AC", "HP", "Speed"];
     const rightStats = ["Initiative"];
-    const additionalStats = ["Skills", "Resistances", "Senses", "Languages", "CR"];
-    for (let i = currentLine; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (line.startsWith("###")) {
-        if (currentSectionTitle) {
-          await this.addSectionToMonster(monster, currentSectionTitle, currentSection);
-        }
-        currentSectionTitle = line.replace(/^###\s*/, "").trim();
-        currentSection = "";
-      } else if (line === "{{tables" || line === "{!tables") {
-        inTables = true;
-        if (!tablesContainer) {
-          tablesContainer = document.createElement("div");
-          tablesContainer.className = "monster-tables";
-          statsEl.appendChild(tablesContainer);
-        }
-      } else if ((line === "}}" || line === "}!") && inTables) {
-        inTables = false;
-        if (tableParts.length > 0 && tablesContainer) {
-          this.processTableData(tableParts.join("\n"), tablesContainer);
-          tableParts = [];
-        }
-      } else if (inTables) {
-        tableParts.push(line);
-      } else if (line.includes("::")) {
+    while (currentLine < lines.length) {
+      const line = lines[currentLine].trim();
+      if (line.startsWith("###") || line === "{{tables" || line === "{!tables}") {
+        break;
+      }
+      if (line.includes("::")) {
         const parts = line.split("::").map((part) => part.trim());
         if (parts.length === 2) {
           const statName = parts[0].replace(/\*\*/g, "").trim();
           const statValue = parts[1].trim();
-          const statEl = document.createElement("div");
-          statEl.className = "monster-stat-item";
           const statKey = statName.toLowerCase();
-          if (statKey.includes("initiative")) {
-            statEl.classList.add("stat-initiative");
-          }
-          const statLabel = document.createElement("strong");
-          statLabel.textContent = statName + ":";
-          statEl.appendChild(statLabel);
-          statEl.appendChild(document.createTextNode(" " + statValue));
           if (leftStats.some((s) => statKey.includes(s.toLowerCase()))) {
-            leftStatsEl.appendChild(statEl);
+            await this.createStatItem(statName, statValue, leftStatsContainer, sourcePath);
           } else if (rightStats.some((s) => statKey.includes(s.toLowerCase()))) {
-            rightStatsEl.appendChild(statEl);
+            await this.createStatItem(statName, statValue, rightStatsContainer, sourcePath);
           } else {
-            if (!additionalStatsEl) {
-              additionalStatsEl = document.createElement("div");
-              additionalStatsEl.className = "monster-additional-stats";
-              monster.appendChild(additionalStatsEl);
-              hasAdditionalStats = true;
-            }
-            additionalStatsEl.appendChild(statEl);
+            await this.createStatItem(statName, statValue, additionalStatsContainer, sourcePath);
+            hasAdditionalStats = true;
           }
         }
-      } else if (currentSectionTitle && !line.startsWith("{{") && !line.startsWith("}}")) {
-        currentSection += line + "\n";
+      } else if (line) {
+        break;
+      }
+      currentLine++;
+    }
+    return [currentLine, hasAdditionalStats];
+  }
+  // MODIFIED renderMonsterContent (to be async and pass sourcePath)
+  // This uses the structure from your very first provided code.
+  // Replace your current renderMonsterContent with this version:
+  async renderMonsterContent(source, container, options) {
+    let linesToParse;
+    let sourceToProcess = source.trim();
+    const openerMatch = sourceToProcess.match(/^(\{\{(?:monster,frame(?:,wide)?)\s*|\{!monster,frame(?:,wide)?\s*)/);
+    if (openerMatch && sourceToProcess.endsWith("}}")) {
+      const openingTagEndIndex = openerMatch[0].length;
+      const lastClosingBraceIndex = sourceToProcess.lastIndexOf("}}");
+      if (lastClosingBraceIndex > openingTagEndIndex) {
+        let relevantContent = sourceToProcess.substring(openingTagEndIndex, lastClosingBraceIndex).trim();
+        linesToParse = relevantContent.split("\n");
+      } else {
+        linesToParse = sourceToProcess.split("\n");
+      }
+    } else {
+      linesToParse = sourceToProcess.split("\n");
+    }
+    const monster = container.createDiv({ cls: "monster" });
+    if (options.wide)
+      monster.classList.add("monster-wide");
+    let title = "Monster";
+    let type = "";
+    let currentLineIdxAfterHeader = 0;
+    for (let i2 = 0; i2 < linesToParse.length; i2++) {
+      if (linesToParse[i2].trim().startsWith("##")) {
+        title = linesToParse[i2].replace(/^##\s*/, "").trim();
+        currentLineIdxAfterHeader = i2 + 1;
+        break;
       }
     }
-    if (currentSectionTitle) {
-      await this.addSectionToMonster(monster, currentSectionTitle, currentSection);
+    monster.createEl("h2", { cls: "monster-title", text: title });
+    if (currentLineIdxAfterHeader < linesToParse.length && linesToParse[currentLineIdxAfterHeader].trim().startsWith("*") && linesToParse[currentLineIdxAfterHeader].trim().endsWith("*")) {
+      type = linesToParse[currentLineIdxAfterHeader].replace(/^\*|\*$/g, "").trim();
+      currentLineIdxAfterHeader++;
     }
-    container.appendChild(monster);
+    if (type)
+      monster.createEl("p", { cls: "monster-type", text: type });
+    let leftColumn = null;
+    let rightColumn = null;
+    if (options.wide) {
+      const columnsContainer = monster.createDiv({ cls: "monster-columns" });
+      leftColumn = columnsContainer.createDiv({ cls: "monster-left-column" });
+      rightColumn = columnsContainer.createDiv({ cls: "monster-right-column" });
+    }
+    const statsEl = document.createElement("div");
+    statsEl.className = "monster-stats";
+    const leftStatsEl = statsEl.createDiv({ cls: "monster-left-stats" });
+    const rightStatsEl = statsEl.createDiv({ cls: "monster-right-stats" });
+    const tablesContainer = document.createElement("div");
+    tablesContainer.className = "monster-tables";
+    const additionalStatsEl = document.createElement("div");
+    additionalStatsEl.className = "monster-additional-stats";
+    let collectedSections = [];
+    let currentSectionContent = "";
+    let currentSectionTitle = "";
+    let inTablesBlock = false;
+    let tablePartsBuffer = [];
+    let i = currentLineIdxAfterHeader;
+    while (i < linesToParse.length) {
+      const originalLine = linesToParse[i];
+      const line = originalLine.trim();
+      if (line === "{{stats" || line === "{!stats}" || line === "{{vitals" || line === "{!vitals}" || (line === "}}" || line === "}") && !inTablesBlock) {
+        i++;
+        continue;
+      }
+      if (line.startsWith("###")) {
+        if (currentSectionTitle)
+          collectedSections.push({ title: currentSectionTitle, content: currentSectionContent.trim() });
+        currentSectionTitle = line.replace(/^###\s*/, "").trim();
+        currentSectionContent = "";
+        i++;
+      } else if (line === "{{tables" || line === "{!tables") {
+        if (currentSectionTitle) {
+          collectedSections.push({ title: currentSectionTitle, content: currentSectionContent.trim() });
+          currentSectionTitle = "";
+          currentSectionContent = "";
+        }
+        inTablesBlock = true;
+        tablePartsBuffer = [];
+        i++;
+      } else if ((line === "}}" || line === "}!") && inTablesBlock) {
+        inTablesBlock = false;
+        if (tablePartsBuffer.length > 0) {
+          if (options.wide)
+            this.processTableDataForWideFormat(tablePartsBuffer.join("\n"), tablesContainer);
+          else
+            this.processTableData(tablePartsBuffer.join("\n"), tablesContainer);
+        }
+        i++;
+      } else if (inTablesBlock) {
+        tablePartsBuffer.push(originalLine);
+        i++;
+      } else if (line.includes("::") && !currentSectionTitle) {
+        if (currentSectionTitle) {
+          collectedSections.push({ title: currentSectionTitle, content: currentSectionContent.trim() });
+          currentSectionTitle = "";
+          currentSectionContent = "";
+        }
+        const [nextLine, _hasAddStats] = await this.processStats(
+          // Use _hasAddStats if needed later
+          linesToParse,
+          i,
+          leftStatsEl,
+          rightStatsEl,
+          additionalStatsEl,
+          options.sourcePath
+        );
+        i = nextLine;
+      } else if (currentSectionTitle) {
+        currentSectionContent += originalLine + "\n";
+        i++;
+      } else {
+        if (line) {
+          console.warn(`Statblock: Unhandled/Skipped line in main loop: "${line}"`);
+        }
+        i++;
+      }
+    }
+    if (currentSectionTitle)
+      collectedSections.push({ title: currentSectionTitle, content: currentSectionContent.trim() });
+    const primaryTarget = options.wide && leftColumn ? leftColumn : monster;
+    if (leftStatsEl.hasChildNodes() || rightStatsEl.hasChildNodes())
+      primaryTarget.appendChild(statsEl);
+    if (tablesContainer.hasChildNodes())
+      primaryTarget.appendChild(tablesContainer);
+    if (additionalStatsEl.hasChildNodes())
+      primaryTarget.appendChild(additionalStatsEl);
+    if (options.wide && leftColumn && rightColumn) {
+      this.distributeSectionsForWideFormat(collectedSections, leftColumn, rightColumn, options.sourcePath);
+    } else {
+      for (const section of collectedSections) {
+        await this.addSectionToMonster(monster, section.title, section.content, options.sourcePath);
+      }
+    }
   }
-  /**
-   * Add a section to the monster block
-   */
-  async addSectionToMonster(monster, title, content) {
-    const sectionEl = document.createElement("div");
-    sectionEl.className = "monster-section";
-    const sectionTitleEl = document.createElement("h3");
-    sectionTitleEl.className = "monster-section-title";
-    sectionTitleEl.textContent = title;
-    sectionEl.appendChild(sectionTitleEl);
-    const sectionContentEl = document.createElement("div");
-    await import_obsidian.MarkdownRenderer.renderMarkdown(
-      content,
-      sectionContentEl,
-      "",
-      this
-    );
-    sectionEl.appendChild(sectionContentEl);
-    monster.appendChild(sectionEl);
+  async addSectionToMonster(monster, title, content, sourcePath) {
+    const sectionEl = monster.createDiv({ cls: "monster-section" });
+    sectionEl.createEl("h3", { cls: "monster-section-title", text: title });
+    const sectionContentEl = sectionEl.createDiv();
+    await import_obsidian.MarkdownRenderer.renderMarkdown(content, sectionContentEl, sourcePath, this);
   }
-  /**
-   * Process markdown table data into HTML tables
-   */
   processTableData(tableContent, container) {
     try {
       const tables = tableContent.split("\n\n").filter((table) => table.trim());
-      for (const tableText of tables) {
+      tables.forEach((tableText) => {
         const rows = tableText.split("\n").filter((row) => row.trim());
-        const tableEl = document.createElement("table");
-        tableEl.className = "monster-table";
-        for (let i = 0; i < rows.length; i++) {
-          const row = rows[i];
-          if (i === 1 && row.includes(":-")) {
-            continue;
-          }
+        if (rows.length === 0)
+          return;
+        const tableEl = container.createEl("table", { cls: "monster-table" });
+        const thead = tableEl.createTHead();
+        const tbody = tableEl.createTBody();
+        rows.forEach((row, rowIndex) => {
+          if (rowIndex === 1 && row.includes(":-"))
+            return;
           const cells = row.split("|").filter((_, idx, arr) => idx > 0 && idx < arr.length - 1).map((cell) => cell.trim());
-          const rowEl = document.createElement("tr");
-          if (i === 0) {
-            for (const cell of cells) {
-              const thEl = document.createElement("th");
-              thEl.textContent = cell;
-              rowEl.appendChild(thEl);
-            }
-          } else {
-            for (const cell of cells) {
-              const tdEl = document.createElement("td");
-              tdEl.textContent = cell;
-              rowEl.appendChild(tdEl);
-            }
-          }
-          tableEl.appendChild(rowEl);
-        }
-        container.appendChild(tableEl);
-      }
+          const targetRowGroup = rowIndex === 0 ? thead : tbody;
+          const rowEl = targetRowGroup.insertRow();
+          cells.forEach((cellText, cellIndex) => {
+            const cellEl = rowIndex === 0 ? rowEl.createEl("th") : rowEl.insertCell();
+            cellEl.textContent = cellText;
+            if (rowIndex !== 0 && cellIndex === 0)
+              cellEl.className = "ability-name";
+          });
+        });
+        if (thead.rows.length === 0 && tbody.rows.length === 0)
+          tableEl.remove();
+      });
     } catch (error) {
       console.error("Error processing table data:", error);
-      const errorEl = document.createElement("div");
-      errorEl.textContent = "Error processing table: " + error.message;
-      errorEl.style.color = "red";
-      container.appendChild(errorEl);
+      container.createDiv({ text: "Error processing table: " + error.message, attr: { style: "color:red;" } });
     }
   }
 };
