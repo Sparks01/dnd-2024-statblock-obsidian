@@ -16,56 +16,136 @@
   --MonsterValueColor: #000;
 }
 
-/* Dark Mode Color Variables */
+/* Dark Mode Color Variables - Updated for better Obsidian compatibility */
 @media (prefers-color-scheme: dark) {
   :root {
-    --MonsterBackground: #2a2a2a; /* Dark background */
-    --Light_Gray: #b0b0b0; /* Lighter gray for better contrast */
-    --New_Dark_Red: #d4756b; /* Lighter red for dark backgrounds */
-    --HB_Color_HeaderText: #e0e0e0; /* Light text */
-    --Monster_Table_Red: #3a3430; /* Dark table colors */
+    --MonsterBackground: #2a2a2a;
+    --Light_Gray: #b0b0b0;
+    --New_Dark_Red: #d4756b;
+    --HB_Color_HeaderText: #e0e0e0;
+    --Monster_Table_Red: #3a3430;
     --Monster_Table_Yellow: #3d3832;
     --Monster_Table_Purple: #383437;
     --Monster_Table_Green: #353832;
-    --MonsterBorder: #555555; /* Lighter border for visibility */
-    --MonsterShadow: rgba(0, 0, 0, 0.4); /* Darker shadow */
+    --MonsterBorder: #555555;
+    --MonsterShadow: rgba(0, 0, 0, 0.4);
     --MonsterTextColor: #e0e0e0;
     --MonsterValueColor: #d0d0d0;
   }
 }
 
-/* Obsidian-specific Dark Mode Detection */
-.theme-dark {
-  --MonsterBackground: #2a2a2a;
-  --Light_Gray: #b0b0b0;
-  --New_Dark_Red: #d4756b;
-  --HB_Color_HeaderText: #e0e0e0;
-  --Monster_Table_Red: #3a3430;
-  --Monster_Table_Yellow: #3d3832;
-  --Monster_Table_Purple: #383437;
-  --Monster_Table_Green: #353832;
-  --MonsterBorder: #555555;
-  --MonsterShadow: rgba(0, 0, 0, 0.4);
-  --MonsterTextColor: #e0e0e0;
-  --MonsterValueColor: #d0d0d0;
+/* Obsidian-specific Dark Mode Detection - More comprehensive */
+.theme-dark,
+.theme-dark :root,
+body.theme-dark,
+.app-container.theme-dark {
+  --MonsterBackground: #2a2a2a !important;
+  --Light_Gray: #b0b0b0 !important;
+  --New_Dark_Red: #d4756b !important;
+  --HB_Color_HeaderText: #e0e0e0 !important;
+  --Monster_Table_Red: #3a3430 !important;
+  --Monster_Table_Yellow: #3d3832 !important;
+  --Monster_Table_Purple: #383437 !important;
+  --Monster_Table_Green: #353832 !important;
+  --MonsterBorder: #555555 !important;
+  --MonsterShadow: rgba(0, 0, 0, 0.4) !important;
+  --MonsterTextColor: #e0e0e0 !important;
+  --MonsterValueColor: #d0d0d0 !important;
 }
 
-/* Force dark mode for elements within .theme-dark */
-.theme-dark .monster,
-.theme-dark .monster-wide {
-  color: var(--MonsterTextColor);
+/* Force dark mode colors with higher specificity */
+.theme-dark .monster-container,
+.theme-dark .monster-container .monster,
+.theme-dark .monster-container .monster-wide,
+body.theme-dark .monster-container .monster,
+body.theme-dark .monster-container .monster-wide {
+  background-color: var(--MonsterBackground) !important;
+  color: var(--MonsterTextColor) !important;
+  border-color: var(--MonsterBorder) !important;
 }
 
-.theme-dark .monster-type {
-  color: var(--Light_Gray);
+.theme-dark .monster-type,
+body.theme-dark .monster-type {
+  color: var(--Light_Gray) !important;
 }
 
-.theme-dark .monster-stat-item span {
-  color: var(--MonsterValueColor);
+.theme-dark .monster-title,
+body.theme-dark .monster-title {
+  color: var(--New_Dark_Red) !important;
+  border-bottom-color: var(--New_Dark_Red) !important;
 }
 
-.theme-dark .monster-section p {
-  color: var(--MonsterTextColor);
+.theme-dark .monster-stat-item span,
+.theme-dark .monster-stat-item span p,
+body.theme-dark .monster-stat-item span,
+body.theme-dark .monster-stat-item span p {
+  color: var(--MonsterValueColor) !important;
+}
+
+.theme-dark .monster-section p,
+.theme-dark .monster-section-title,
+body.theme-dark .monster-section p,
+body.theme-dark .monster-section-title {
+  color: var(--MonsterTextColor) !important;
+}
+
+/* Add these to your existing dark mode section (around line 90) */
+.theme-dark .ability-table tr:nth-child(odd) td,
+body.theme-dark .ability-table tr:nth-child(odd) td { 
+  background-color: var(--Monster_Table_Purple) !important; 
+}
+
+.theme-dark .ability-table tr:nth-child(odd) td.ability-name,
+body.theme-dark .ability-table tr:nth-child(odd) td.ability-name { 
+  background-color: var(--Monster_Table_Green) !important; 
+}
+
+.theme-dark .ability-table tr:nth-child(even) td,
+body.theme-dark .ability-table tr:nth-child(even) td { 
+  background-color: var(--Monster_Table_Red) !important; 
+}
+
+.theme-dark .ability-table tr:nth-child(even) td.ability-name,
+body.theme-dark .ability-table tr:nth-child(even) td.ability-name { 
+  background-color: var(--Monster_Table_Yellow) !important; 
+}
+
+.theme-dark .ability-table td,
+body.theme-dark .ability-table td {
+  color: var(--MonsterTextColor) !important;
+}
+
+.theme-dark .ability-table td.ability-name,
+body.theme-dark .ability-table td.ability-name {
+  color: var(--New_Dark_Red) !important;
+}
+
+
+.theme-dark .monster-section-title,
+body.theme-dark .monster-section-title {
+  color: var(--New_Dark_Red) !important;
+  border-bottom-color: var(--New_Dark_Red) !important;
+}
+
+/* Fix table colors in dark mode */
+.theme-dark .monster-table tr:nth-child(odd) td,
+body.theme-dark .monster-table tr:nth-child(odd) td { 
+  background-color: var(--Monster_Table_Purple) !important; 
+}
+
+.theme-dark .monster-table tr:nth-child(odd) td:first-child,
+body.theme-dark .monster-table tr:nth-child(odd) td:first-child { 
+  background-color: var(--Monster_Table_Green) !important; 
+}
+
+.theme-dark .monster-table tr:nth-child(even) td,
+body.theme-dark .monster-table tr:nth-child(even) td { 
+  background-color: var(--Monster_Table_Red) !important; 
+}
+
+.theme-dark .monster-table tr:nth-child(even) td:first-child,
+body.theme-dark .monster-table tr:nth-child(even) td:first-child { 
+  background-color: var(--Monster_Table_Yellow) !important; 
 }
 
 /* Container styles */
@@ -673,3 +753,295 @@
   box-sizing: border-box; /* Keep this */
   /* width: 100%; /* Usually not needed for block children of flex items */
 }
+
+/* LIGHT MODE FORCE FIX - Add this at the very end of your styles.css */
+
+/* Force light mode colors when theme-light is present */
+.theme-light,
+body.theme-light,
+.app-container.theme-light,
+html.theme-light {
+  --MonsterBackground: #f7f5f0 !important;
+  --Light_Gray: #888 !important;
+  --New_Dark_Red: #6f1f11 !important;
+  --HB_Color_HeaderText: #333 !important;
+  --Monster_Table_Red: #ece5de !important;
+  --Monster_Table_Yellow: #f3ede3 !important;
+  --Monster_Table_Purple: #e8e4e1 !important;
+  --Monster_Table_Green: #e5e8e2 !important;
+  --MonsterBorder: #d6d0c9 !important;
+  --MonsterShadow: rgba(0, 0, 0, 0.15) !important;
+  --MonsterTextColor: #000 !important;
+  --MonsterValueColor: #000 !important;
+}
+
+/* Force light mode styling with higher specificity */
+.theme-light .monster-container .monster,
+.theme-light .monster-container .monster-wide,
+body.theme-light .monster-container .monster,
+body.theme-light .monster-container .monster-wide {
+  background-color: #f7f5f0 !important;
+  color: #000 !important;
+  border-color: #d6d0c9 !important;
+}
+
+.theme-light .monster-title,
+body.theme-light .monster-title {
+  color: #6f1f11 !important;
+  border-bottom-color: #6f1f11 !important;
+}
+
+.theme-light .monster-type,
+body.theme-light .monster-type {
+  color: #888 !important;
+}
+
+.theme-light .monster-section-title,
+body.theme-light .monster-section-title {
+  color: #6f1f11 !important;
+  border-bottom-color: #6f1f11 !important;
+}
+
+.theme-light .monster-section p,
+.theme-light .monster-stat-item,
+.theme-light .monster-stat-item span,
+body.theme-light .monster-section p,
+body.theme-light .monster-stat-item,
+body.theme-light .monster-stat-item span {
+  color: #000 !important;
+}
+
+/* Fix table colors for light mode */
+.theme-light .monster-table tr:nth-child(odd) td,
+.theme-light .ability-table tr:nth-child(odd) td,
+body.theme-light .monster-table tr:nth-child(odd) td,
+body.theme-light .ability-table tr:nth-child(odd) td { 
+  background-color: #e8e4e1 !important; 
+}
+
+.theme-light .monster-table tr:nth-child(odd) td:first-child,
+.theme-light .ability-table tr:nth-child(odd) td.ability-name,
+body.theme-light .monster-table tr:nth-child(odd) td:first-child,
+body.theme-light .ability-table tr:nth-child(odd) td.ability-name { 
+  background-color: #e5e8e2 !important; 
+}
+
+.theme-light .monster-table tr:nth-child(even) td,
+.theme-light .ability-table tr:nth-child(even) td,
+body.theme-light .monster-table tr:nth-child(even) td,
+body.theme-light .ability-table tr:nth-child(even) td { 
+  background-color: #ece5de !important; 
+}
+
+.theme-light .monster-table tr:nth-child(even) td:first-child,
+.theme-light .ability-table tr:nth-child(even) td.ability-name,
+body.theme-light .monster-table tr:nth-child(even) td:first-child,
+body.theme-light .ability-table tr:nth-child(even) td.ability-name { 
+  background-color: #f3ede3 !important; 
+}
+
+/* ============================================================
+   RETRO MODE OVERRIDES (Fixed Colors)
+   Activates when "Retro Mode" is toggled in Plugin Settings
+   ============================================================ */
+
+body.dnd-retro-mode .monster-container {
+    font-family: 'Space Grotesk', 'Share Tech Mono', monospace !important;
+    margin: 1em 0;
+}
+
+/* 1. The Container - Dark & Opaque */
+body.dnd-retro-mode .monster,
+body.dnd-retro-mode .monster-wide {
+    background-color: #111111 !important; /* Almost Black */
+    border: 2px solid #ff4d4d !important; /* Bright Red Border */
+    border-radius: 6px !important;
+    box-shadow: 4px 4px 0px rgba(239, 68, 68, 0.2) !important;
+    color: #ffffff !important;
+}
+
+/* Remove WotC decorations */
+body.dnd-retro-mode .monster::before,
+body.dnd-retro-mode .monster-wide::before {
+    display: none !important;
+}
+
+/* 2. The Header */
+body.dnd-retro-mode .monster-title {
+    font-family: 'Share Tech Mono', monospace !important;
+    color: #ff4d4d !important; /* Bright Red */
+    border-bottom: 2px solid #ff4d4d !important;
+    text-transform: uppercase;
+    letter-spacing: 0.1em !important;
+    text-shadow: 0 0 8px rgba(255, 77, 77, 0.4);
+}
+
+body.dnd-retro-mode .monster-type {
+    color: #ffffff !important; /* White */
+    font-style: normal !important;
+    font-family: 'Space Grotesk', sans-serif !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+/* 3. Stats (AC, HP, Speed) - FIXED COLOR */
+body.dnd-retro-mode .monster-stat-item strong {
+    color: #fb923c !important; /* Bright Orange (Fixed) */
+    font-family: 'Space Grotesk', sans-serif !important;
+    text-transform: uppercase;
+    font-weight: 800 !important;
+}
+
+body.dnd-retro-mode .monster-stat-item span {
+    color: #ffffff !important; /* White */
+    font-weight: 400;
+}
+
+/* 4. Tables (STR/DEX) */
+body.dnd-retro-mode .monster-table,
+body.dnd-retro-mode .ability-table {
+    border: 1px solid #444 !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Table Headers (MOD, SAVE) */
+body.dnd-retro-mode .monster-table th,
+body.dnd-retro-mode .ability-table th {
+    color: #e0e0e0 !important; /* Light Grey */
+    background: transparent !important;
+    font-family: 'Share Tech Mono', monospace !important;
+    font-size: 0.75em !important;
+    letter-spacing: 1px;
+}
+
+body.dnd-retro-mode .monster-table td,
+body.dnd-retro-mode .ability-table td {
+    background: transparent !important;
+    color: #ffffff !important; /* White Numbers */
+    border-color: #444 !important;
+}
+/* ============================================================
+   RETRO MODE: DYNAMIC LIGHT & DARK THEMES
+   Activates when "Retro Mode" is toggled in Plugin Settings
+   ============================================================ */
+
+/* --- 1. SHARED RETRO FONTS & LAYOUT --- */
+body.dnd-retro-mode .monster-container {
+    font-family: 'Space Grotesk', 'Share Tech Mono', monospace !important;
+    margin: 1em 0;
+}
+
+body.dnd-retro-mode .monster,
+body.dnd-retro-mode .monster-wide {
+    border-radius: 6px !important;
+    border-width: 2px !important;
+    border-style: solid !important;
+}
+
+/* Remove WotC decorations */
+body.dnd-retro-mode .monster::before,
+body.dnd-retro-mode .monster-wide::before {
+    display: none !important;
+}
+
+/* --- 2. DARK MODE PALETTE (The "Terminal" Look) --- */
+.theme-dark.dnd-retro-mode .monster,
+.theme-dark.dnd-retro-mode .monster-wide {
+    background-color: #111111 !important;
+    border-color: #ff4d4d !important; /* Neon Red Border */
+    color: #ffffff !important;
+    box-shadow: 0 0 10px rgba(255, 77, 77, 0.2) !important;
+}
+
+.theme-dark.dnd-retro-mode .monster-title {
+    color: #ff4d4d !important;
+    border-bottom: 2px solid #ff4d4d !important;
+    text-shadow: 0 0 5px rgba(255, 77, 77, 0.5);
+}
+
+.theme-dark.dnd-retro-mode .monster-type { color: #aaaaaa !important; }
+.theme-dark.dnd-retro-mode .monster-stat-item strong { color: #fb923c !important; /* Neon Orange */ }
+.theme-dark.dnd-retro-mode .monster-stat-item span { color: #ffffff !important; }
+
+/* Dark Mode Tables */
+.theme-dark.dnd-retro-mode .monster-table,
+.theme-dark.dnd-retro-mode .ability-table {
+    border: 1px solid #444 !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+.theme-dark.dnd-retro-mode .ability-table td.ability-name { color: #2dd4bf !important; /* Neon Teal */ }
+.theme-dark.dnd-retro-mode .ability-table td { color: #ffffff !important; }
+.theme-dark.dnd-retro-mode .monster-section-title { color: #2dd4bf !important; border-bottom-color: #2dd4bf !important; }
+.theme-dark.dnd-retro-mode .monster-section p em:first-child { color: #facc15 !important; /* Neon Yellow */ }
+
+/* --- 3. LIGHT MODE PALETTE (The "Technical Manual" Look) --- */
+.theme-light.dnd-retro-mode .monster,
+.theme-light.dnd-retro-mode .monster-wide {
+    background-color: #F8F8F6 !important; /* Cream */
+    border-color: #333333 !important;     /* Dark Grey Border */
+    color: #000000 !important;
+    box-shadow: 4px 4px 0px rgba(0,0,0,0.1) !important;
+}
+
+.theme-light.dnd-retro-mode .monster-title {
+    color: #000000 !important;
+    border-bottom: 2px solid #fb923c !important; /* Orange Line */
+    text-shadow: none !important;
+}
+
+.theme-light.dnd-retro-mode .monster-type { color: #666666 !important; }
+.theme-light.dnd-retro-mode .monster-stat-item strong { color: #d946ef !important; /* Magenta Labels */ }
+.theme-light.dnd-retro-mode .monster-stat-item span { color: #000000 !important; }
+
+/* Light Mode Tables */
+.theme-light.dnd-retro-mode .monster-table,
+.theme-light.dnd-retro-mode .ability-table {
+    border: 1px solid #333 !important;
+    background: rgba(0, 0, 0, 0.03) !important;
+}
+.theme-light.dnd-retro-mode .ability-table td.ability-name { color: #000000 !important; font-weight: 900 !important; }
+.theme-light.dnd-retro-mode .ability-table td { color: #000000 !important; }
+.theme-light.dnd-retro-mode .monster-section-title { color: #000000 !important; border-bottom-color: #2dd4bf !important; }
+.theme-light.dnd-retro-mode .monster-section p em:first-child { 
+    color: #000000 !important; 
+    background: linear-gradient(120deg, rgba(45, 212, 191, 0.3) 0%, transparent 100%);
+    padding: 0 2px;
+}
+
+/* --- 4. SHARED TYPOGRAPHY --- */
+body.dnd-retro-mode .monster-title {
+    font-family: 'Share Tech Mono', monospace !important;
+    text-transform: uppercase;
+    letter-spacing: 0.1em !important;
+}
+
+body.dnd-retro-mode .monster-type {
+    font-family: 'Space Grotesk', sans-serif !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-style: normal !important;
+}
+
+body.dnd-retro-mode .monster-stat-item strong,
+body.dnd-retro-mode .ability-table td.ability-name,
+body.dnd-retro-mode .monster-section-title {
+    font-family: 'Space Grotesk', sans-serif !important;
+    text-transform: uppercase;
+    font-weight: 800 !important;
+}
+
+body.dnd-retro-mode .monster-section p em:first-child {
+    font-family: 'Space Grotesk', sans-serif !important;
+    font-weight: 700 !important;
+    font-style: normal !important;
+}
+
+/* Links */
+body.dnd-retro-mode a.internal-link {
+    text-decoration: underline;
+    font-weight: bold;
+}
+.theme-dark.dnd-retro-mode a.internal-link { color: #2dd4bf !important; text-decoration-color: #2dd4bf; }
+.theme-light.dnd-retro-mode a.internal-link { color: #d946ef !important; text-decoration-color: #d946ef; }
