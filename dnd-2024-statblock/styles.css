@@ -1043,5 +1043,28 @@ body.dnd-retro-mode a.internal-link {
     text-decoration: underline;
     font-weight: bold;
 }
+
+/* ============================================================
+   FIX: Ability Score Headers (MOD / SAVE)
+   ============================================================ */
+
+/* LIGHT MODE: Make them Pitch Black and Bold */
+body.theme-light.dnd-retro-mode .monster-table th,
+body.theme-light.dnd-retro-mode .ability-table th {
+    color: #000000 !important;
+    font-weight: 900 !important;
+    opacity: 1 !important;
+    border-bottom: 1px solid #000000 !important; /* Adds a clean underline */
+}
+
+/* DARK MODE: Make them Bright Teal */
+body.theme-dark.dnd-retro-mode .monster-table th,
+body.theme-dark.dnd-retro-mode .ability-table th {
+    color: #2dd4bf !important;
+    font-weight: 900 !important;
+    opacity: 1 !important;
+    border-bottom: 1px solid #2dd4bf !important;
+}
+
 .theme-dark.dnd-retro-mode a.internal-link { color: #2dd4bf !important; text-decoration-color: #2dd4bf; }
 .theme-light.dnd-retro-mode a.internal-link { color: #d946ef !important; text-decoration-color: #d946ef; }
